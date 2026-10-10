@@ -9,20 +9,64 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: "#FFFFFF",
+    background: "#101010",
+    card: "#181818",
+    backgroundElement: "#181818",
+    backgroundSelected: "#202020",
+    textSecondary: "#A3A3A3",
+    primary: "#0D518C",
+    primaryForeground: "#FFFFFF",
+    primaryDisabled: "#0D518CB3",
+    primaryMuted: "#0D518CB3",
+    primary70: "#0D518CB3",
+    border: "#2A2A2A",
+    input: "#2A2A2A",
+    handle: "#3A3A3C",
+    ring: "#0D518C",
+    error: "#FF6B6B",
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: "#FFFFFF",
+    background: "#101010",
+    card: "#181818",
+    backgroundElement: "#181818",
+    backgroundSelected: "#202020",
+    textSecondary: "#A3A3A3",
+    primary: "#0D518C",
+    primaryForeground: "#FFFFFF",
+    primaryDisabled: "#0D518CB3",
+    primaryMuted: "#0D518CB3",
+    primary70: "#0D518CB3",
+    border: "#2A2A2A",
+    input: "#2A2A2A",
+    handle: "#3A3A3C",
+    ring: "#0D518C",
+    error: "#FF6B6B",
   },
 } as const;
+
+export const theme = Colors.dark;
+
+// Direct color tokens matching global.css for convenient imports in any component
+export const {
+  background,
+  card,
+  backgroundElement,
+  backgroundSelected,
+  primary,
+  primaryForeground,
+  primaryDisabled,
+  primaryMuted,
+  primary70,
+  text,
+  textSecondary,
+  border,
+  input,
+  handle,
+  ring,
+  error,
+} = Colors.dark;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 

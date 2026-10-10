@@ -1,9 +1,26 @@
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-display: 'Poppins', sans-serif;
+  --font-mono: 'Poppins', sans-serif;
+  --font-rounded: 'Poppins', sans-serif;
+  --font-serif: 'Poppins', sans-serif;
+
+  --background: #101010;
+  --foreground: #FFFFFF;
+
+  --card: #181818;
+  --card-foreground: #FFFFFF;
+
+  --primary: #0D518C;
+  --primary-foreground: #FFFFFF;
+  --primary-disabled: #0D518CB3;
+
+  --secondary: #202020;
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #202020;
+  --muted-foreground: #A3A3A3;
+
+  --border: #2A2A2A;
+  --input: #2A2A2A;
+  --ring: #0D518C;
 }
