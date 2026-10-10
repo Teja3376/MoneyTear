@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { z } from "zod";
 import {
   Keyboard,
   Pressable,
@@ -22,6 +21,7 @@ import {
   textSecondary,
 } from "@/constants/theme";
 import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
+import { profileSchema, type ProfileForm } from "@/modules/auth/schemas";
 import {
   CalendarIcon,
   DatePickerSheet,
@@ -29,26 +29,16 @@ import {
   formatDateYMD,
 } from "@/components/date-picker-sheet";
 import { router } from "expo-router";
+import { useUpdateProfile } from "@/modules/users/hooks/useUpdateProfile";
+import { getErrorMessage } from "@/lib/errors";
 
-const profileSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required."),
-  lastName: z.string().trim().min(1, "Last name is required."),
-  email: z.string().trim().email("Enter a valid email address."),
-  dateOfBirth: z
-    .date()
-    .nullable()
-    .refine(
-      (date) => date !== null && date <= new Date(),
-      "Select your date of birth."
-    ),
-});
-
-type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const [fontsLoaded] = useAuthFonts();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const updateProfileMutation = useUpdateProfile();
 
   const {
     control,
@@ -66,16 +56,23 @@ export default function ProfilePage() {
   });
   const dob = useWatch({ control, name: "dateOfBirth" });
 
-  const onSubmit = (values: ProfileForm) => {
-    console.log("Profile details:", {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email,
-      dateOfBirth: values.dateOfBirth ? formatDateYMD(values.dateOfBirth) : null,
-    });
-    setSubmitted(true);
-    router.replace("/(auth)/set-pin");
+  const onSubmit = async (values: ProfileForm) => {
+    setApiError(null);
+    try {
+      await updateProfileMutation.mutateAsync({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email || undefined,
+        dateOfBirth: values.dateOfBirth ? formatDateYMD(values.dateOfBirth) : undefined,
+      });
+      setSubmitted(true);
+      router.replace("/(auth)/set-pin");
+    } catch (err) {
+      setApiError(getErrorMessage(err, "Failed to update profile. Please try again."));
+    }
+
   };
+
 
   if (!fontsLoaded) return <View style={styles.loading} />;
 
@@ -227,20 +224,27 @@ export default function ProfilePage() {
             </Text>
           )}
 
+          {apiError && (
+            <Text style={styles.errorText}>
+              {apiError}
+            </Text>
+          )}
+
           <Pressable
             onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || updateProfileMutation.isPending}
             style={({ pressed }) => [
               styles.submitButton,
               pressed && styles.pressed,
-              isSubmitting && styles.disabledButton,
+              (isSubmitting || updateProfileMutation.isPending) && styles.disabledButton,
             ]}
             accessibilityRole="button"
           >
             <Text style={styles.submitText}>
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting || updateProfileMutation.isPending ? "Submitting..." : "Submit"}
             </Text>
           </Pressable>
+
           <Text style={styles.privacyNote}>
             Your details help us personalize your MoneyTear experience.
           </Text>

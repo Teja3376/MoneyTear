@@ -13,9 +13,14 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 
 import AuthScreenLayout from "@/modules/auth/components/auth-screen-layout";
-import { theme, primary, primaryDisabled } from "@/constants/theme";
+import { theme, primary, primaryDisabled, error as errorColor } from "@/constants/theme";
+import { useVerifyOtp } from "@/modules/auth/hooks/useVerifyOtp";
+import { useSendOtp } from "@/modules/auth/hooks/useSendOtp";
+import { getErrorMessage } from "@/lib/errors";
 
 const OTP_LENGTH = 6;
+
+
 const RESEND_SECONDS = 30;
 
 function getMaskedMobile(rawMobile?: string): string {
@@ -89,15 +94,48 @@ export default function OtpPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const verifyOtpMutation = useVerifyOtp();
+  const sendOtpMutation = useSendOtp();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleOtpChange = (value: string) => {
     const cleaned = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
     setOtp(cleaned);
+    setErrorMessage(null);
   };
 
-  const handleResend = () => {
-    if (secondsLeft > 0) return;
-    setSecondsLeft(RESEND_SECONDS);
+  const handleVerify = async () => {
+    if (!mobile || otp.length !== OTP_LENGTH) return;
+    setErrorMessage(null);
+    try {
+      const result = await verifyOtpMutation.mutateAsync({
+        phone: mobile,
+        otp,
+      });
+      if (!result.authState?.profileComplete) {
+        router.replace("/(auth)/profile");
+      } else if (!result.authState?.pinConfigured) {
+        router.replace("/(auth)/set-pin");
+      } else {
+        router.replace("/(auth)/pin");
+      }
+    } catch (err) {
+      setErrorMessage(getErrorMessage(err, "Invalid verification code. Please try again."));
+    }
   };
+
+
+  const handleResend = async () => {
+    if (secondsLeft > 0 || !mobile) return;
+    try {
+      await sendOtpMutation.mutateAsync({ phone: mobile });
+      setSecondsLeft(RESEND_SECONDS);
+      setErrorMessage(null);
+    } catch (err) {
+      setErrorMessage(getErrorMessage(err, "Failed to resend code"));
+    }
+  };
+
 
   const formattedTime = `00:${String(secondsLeft).padStart(2, "0")}`;
   const isOtpComplete = otp.length === OTP_LENGTH;
@@ -142,6 +180,8 @@ export default function OtpPage() {
         </View>
       }
     >
+
+
       {/* 6-digit OTP Box Row */}
       <View
         style={[
@@ -210,13 +250,17 @@ export default function OtpPage() {
             returnKeyType="done"
             onSubmitEditing={() => {
               if (otp.length === OTP_LENGTH) {
-                router.push("/(auth)/profile");
+                void handleVerify();
               }
             }}
             style={styles.hiddenInput}
           />
         </Pressable>
       </View>
+
+      {errorMessage && (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      )}
 
       {/* Minimal Resend Section */}
       <View
@@ -237,29 +281,33 @@ export default function OtpPage() {
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Resend code"
+            disabled={sendOtpMutation.isPending}
           >
-            <Text style={styles.resendAction}>Resend code</Text>
+            <Text style={styles.resendAction}>
+              {sendOtpMutation.isPending ? "Sending..." : "Resend code"}
+            </Text>
           </Pressable>
         )}
       </View>
 
       {/* Verify & Continue Button */}
       <Pressable
-        onPress={() => {
-          router.push("/(auth)/profile");
-        }}
-        disabled={!isOtpComplete}
+        onPress={() => void handleVerify()}
+        disabled={!isOtpComplete || verifyOtpMutation.isPending}
         style={({ pressed }) => [
           styles.verifyButton,
           keyboardVisible && styles.verifyButtonCompact,
           pressed && styles.buttonPressed,
-          !isOtpComplete && styles.verifyButtonDisabled,
+          (!isOtpComplete || verifyOtpMutation.isPending) && styles.verifyButtonDisabled,
         ]}
         accessibilityRole="button"
         accessibilityLabel="Verify and continue"
       >
-        <Text style={styles.verifyButtonText}>Verify & Continue</Text>
+        <Text style={styles.verifyButtonText}>
+          {verifyOtpMutation.isPending ? "Verifying..." : "Verify & Continue"}
+        </Text>
       </Pressable>
+
     </AuthScreenLayout>
   );
 }
@@ -419,4 +467,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Poppins_600SemiBold",
   },
+  errorText: {
+    color: errorColor,
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+    marginBottom: 12,
+  },
 });
+
+

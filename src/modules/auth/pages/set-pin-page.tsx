@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   Pressable,
   ScrollView,
@@ -14,32 +13,23 @@ import { router } from "expo-router";
 import {
   background,
   border,
+  error as errorColor,
   primary,
   primaryDisabled,
   text,
   textSecondary,
 } from "@/constants/theme";
 import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
+import { setPinSchema, type SetPinForm } from "@/modules/auth/schemas";
 import { PinInput } from "@/components/pin-input";
+import { useSetupPin } from "@/modules/security/hooks/useSetupPin";
+import { getErrorMessage } from "@/lib/errors";
 
-const setPinSchema = z
-  .object({
-    newPin: z
-      .string()
-      .regex(/^\d{4}$/, "Enter a 4-digit PIN."),
-    confirmPin: z
-      .string()
-      .regex(/^\d{4}$/, "Confirm your 4-digit PIN."),
-  })
-  .refine((data) => data.newPin === data.confirmPin, {
-    message: "PINs do not match.",
-    path: ["confirmPin"],
-  });
-
-type SetPinForm = z.infer<typeof setPinSchema>;
 
 export default function SetPinPage() {
   const [fontsLoaded] = useAuthFonts();
+  const setupPinMutation = useSetupPin();
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const {
     control,
@@ -58,12 +48,20 @@ export default function SetPinPage() {
   const confirmPinValue = watch("confirmPin");
   const isComplete = newPinValue.length === 4 && confirmPinValue.length === 4;
 
-  const onSubmit = (values: SetPinForm) => {
-    console.log("Set PIN details:", {
-      newPin: values.newPin,
-    });
-    router.replace("/(auth)/pin");
+  const onSubmit = async (values: SetPinForm) => {
+    setApiError(null);
+    try {
+      await setupPinMutation.mutateAsync({
+        pin: values.newPin,
+        confirmPin: values.confirmPin,
+      });
+      router.replace("/(auth)/pin");
+    } catch (err) {
+      setApiError(getErrorMessage(err, "Failed to set PIN. Please try again."));
+    }
+
   };
+
 
   if (!fontsLoaded) return <View style={styles.loading} />;
 
@@ -109,19 +107,25 @@ export default function SetPinPage() {
             )}
           />
 
+          {apiError && (
+            <Text style={styles.errorText}>
+              {apiError}
+            </Text>
+          )}
+
           <Pressable
             onPress={handleSubmit(onSubmit)}
-            disabled={!isComplete || isSubmitting}
+            disabled={!isComplete || isSubmitting || setupPinMutation.isPending}
             style={({ pressed }) => [
               styles.submitButton,
               pressed && styles.pressed,
-              (!isComplete || isSubmitting) && styles.disabledButton,
+              (!isComplete || isSubmitting || setupPinMutation.isPending) && styles.disabledButton,
             ]}
             accessibilityRole="button"
             accessibilityLabel="Set PIN"
           >
             <Text style={styles.submitText}>
-              {isSubmitting ? "Setting PIN..." : "Set PIN"}
+              {isSubmitting || setupPinMutation.isPending ? "Setting PIN..." : "Set PIN"}
             </Text>
           </Pressable>
 
@@ -133,6 +137,7 @@ export default function SetPinPage() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: background },
@@ -183,4 +188,12 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.78 },
   disabledButton: { backgroundColor: primaryDisabled, opacity: 0.7 },
+  errorText: {
+    color: errorColor,
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+    marginTop: 4,
+  },
 });
+

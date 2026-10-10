@@ -1,7 +1,6 @@
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   Pressable,
   ScrollView,
@@ -19,30 +18,8 @@ import {
   textSecondary,
 } from "@/constants/theme";
 import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
+import { resetPinSchema, type ResetPinForm } from "@/modules/auth/schemas";
 import { PinInput } from "@/components/pin-input";
-
-const resetPinSchema = z
-  .object({
-    oldPin: z
-      .string()
-      .regex(/^\d{4}$/, "Enter your current 4-digit PIN."),
-    newPin: z
-      .string()
-      .regex(/^\d{4}$/, "Enter your new 4-digit PIN."),
-    confirmNewPin: z
-      .string()
-      .regex(/^\d{4}$/, "Confirm your new 4-digit PIN."),
-  })
-  .refine((data) => data.newPin !== data.oldPin, {
-    message: "New PIN must be different from current PIN.",
-    path: ["newPin"],
-  })
-  .refine((data) => data.newPin === data.confirmNewPin, {
-    message: "PINs do not match.",
-    path: ["confirmNewPin"],
-  });
-
-type ResetPinForm = z.infer<typeof resetPinSchema>;
 
 export default function ResetPinPage() {
   const [fontsLoaded] = useAuthFonts();
@@ -69,11 +46,9 @@ export default function ResetPinPage() {
     newPinValue.length === 4 &&
     confirmNewPinValue.length === 4;
 
-  const onSubmit = (values: ResetPinForm) => {
-    console.log("Reset PIN details:", {
-      oldPin: values.oldPin,
-      newPin: values.newPin,
-    });
+  const onSubmit = (_values: ResetPinForm) => {
+    // No request is issued here yet. `useChangePin` takes these three fields;
+    // PIN values are never logged.
     router.replace("/(auth)/pin");
   };
 

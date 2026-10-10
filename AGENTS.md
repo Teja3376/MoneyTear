@@ -110,3 +110,36 @@ All screens are registered under `src/app/(auth)/_layout.tsx` with smooth horizo
    - 3 fields: **Current PIN**, **New PIN**, and **Confirm New PIN** (all 4 digits).
    - Validates that New PIN differs from Current PIN, and Confirm New PIN matches New PIN.
    - Submitting updates PIN and routes back to `/(auth)/pin`.
+
+### 4. Frontend Infrastructure
+Full rationale and risks: `FRONTEND_ARCHITECTURE_PLAN.md`.
+
+- **HTTP client** (`src/lib/http-client.ts`): one Axios instance, one literal `API_BASE_URL`
+  (`http://localhost:3000/api`). No env var, no dev/prod switch. Feature hooks call
+  `api.get("/users/me")` with relative paths only.
+- **Interceptors**: requests attach `Authorization: Bearer <token>` only when a token exists
+  (read via `getAccessToken()`); responses are returned untouched on success and rejected as
+  `ApiRequestError` on failure. No UI is rendered from an interceptor.
+- **Errors** (`src/lib/errors.ts`): normalises every failure to
+  `{ code, message, status, fieldErrors, requestId, retryAfterSeconds }`, mirroring the API's
+  error envelope. Helpers: `getErrorMessage`, `getFieldError`, `isUnauthorized`.
+- **No refresh flow.** The API issues Supabase tokens and has no refresh endpoint, so a `401`
+  ends the session instead (single-flight teardown + `queryClient.clear()`). `403` is *never*
+  treated as an expiry — `RecentAuthGuard` uses it for "recent authentication required".
+- **Session** (`src/lib/session.ts` + `src/modules/auth/store/session-provider.tsx`): one
+  framework-free store, projected into React by `SessionProvider` via `useSession()`. Tokens live
+  in `expo-secure-store` on native, `localStorage` on web (`src/lib/storage.ts`).
+- **Route protection**: `<Stack.Protected guard={isAuthenticated}>` around `(tabs)` in
+  `src/app/_layout.tsx`. `(auth)` (sign-in / OTP / onboarding / PIN recovery) stays public.
+  `src/app/index.tsx` is the anchor and routes on session state. The splash screen is held until
+  the session resolves, so protected content never flashes.
+- **TanStack Query**: one `QueryClient` (`src/lib/query-client.ts`) mounted once by
+  `QueryProvider`. Keys come from the factory in `src/lib/query-keys.ts`; invalidation is
+  targeted, never blanket.
+- **Feature modules**: `src/modules/{auth,users,security}/{api,hooks,types}` — `api` does the
+  HTTP call, `hooks` own cache state, `types` mirror the API DTOs, `schemas` (auth only) hold
+  the Zod form schemas extracted out of the page files.
+- **Conventions**: `useQuery.isPending` for a query's first load, `isFetching` for any in-flight
+  request, `useMutation.isPending` to disable submit controls. Field errors inline; operation
+  errors rendered by the page. No toast library is installed and none was added.
+- **Checks**: `npm run typecheck`, `npm test`, `npm run lint`, or `npm run verify`.

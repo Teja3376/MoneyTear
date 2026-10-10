@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import {
     Animated,
     Keyboard,
@@ -22,15 +21,10 @@ import AuthScreenLayout, {
     useAuthFonts,
     theme,
 } from "@/modules/auth/components/auth-screen-layout";
+import { mobileSchema, type MobileForm } from "@/modules/auth/schemas";
 import { primaryDisabled } from "@/constants/theme";
-
-const mobileSchema = z.object({
-    mobile: z
-        .string()
-        .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number"),
-});
-
-type MobileForm = z.infer<typeof mobileSchema>;
+import { useSendOtp } from "@/modules/auth/hooks/useSendOtp";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
     const { height: screenHeight } = useWindowDimensions();
@@ -214,15 +208,23 @@ export default function LoginPage() {
         };
     }, [fontsLoaded, tagline1, tagline2, tagline3, panelY, panelOpacity]);
 
-    const onSubmit = async (values: MobileForm) => {
-        // OTP API integration will be added later.
-        console.log("Mobile number:", values.mobile);
+    const sendOtpMutation = useSendOtp();
+    const [apiError, setApiError] = useState<string | null>(null);
 
-        router.push({
-            pathname: "/(auth)/otp",
-            params: { mobile: values.mobile },
-        });
+    const onSubmit = async (values: MobileForm) => {
+        setApiError(null);
+        try {
+            await sendOtpMutation.mutateAsync({ phone: values.mobile });
+            router.push({
+                pathname: "/(auth)/otp",
+                params: { mobile: values.mobile },
+            });
+        } catch (err) {
+            setApiError(getErrorMessage(err));
+        }
+
     };
+
 
     return (
         <AuthScreenLayout
@@ -347,19 +349,26 @@ export default function LoginPage() {
                 </Text>
             )}
 
+            {apiError && (
+                <Text style={styles.errorText}>
+                    {apiError}
+                </Text>
+            )}
+
             <Pressable
                 onPress={handleSubmit(onSubmit)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || sendOtpMutation.isPending}
                 style={({ pressed }) => [
                     styles.button,
                     pressed && styles.buttonPressed,
-                    isSubmitting && styles.buttonDisabled,
+                    (isSubmitting || sendOtpMutation.isPending) && styles.buttonDisabled,
                 ]}
             >
                 <Text style={styles.buttonText}>
-                    {isSubmitting ? "Please wait..." : "Continue"}
+                    {isSubmitting || sendOtpMutation.isPending ? "Please wait..." : "Continue"}
                 </Text>
             </Pressable>
+
 
             <Text style={styles.terms}>
                 By continuing, you agree to our{" "}
