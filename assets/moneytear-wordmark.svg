@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="347" height="65" viewBox="0 0 347 65" fill="none">
+  <title>MoneyTear centered wordmark</title>
+  <defs>
+    <linearGradient id="tearBlue" x1="210" y1="0" x2="347" y2="65" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#168BFF"/>
+      <stop offset="1" stop-color="#0875E8"/>
+    </linearGradient>
+  </defs>
+  <text x="173.5" y="32.5" dominant-baseline="central" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="-2" fill="#F7F8FA">Money<tspan fill="url(#tearBlue)">Tear</tspan></text>
+</svg>

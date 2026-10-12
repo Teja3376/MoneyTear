@@ -9,17 +9,20 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: "#FFFFFF",
     background: "#101010",
-    card: "#181818",
-    backgroundElement: "#181818",
-    backgroundSelected: "#202020",
-    textSecondary: "#A3A3A3",
+    text: "#FFFFFF",
+    textSecondary: "#A7ADB8",
     primary: "#0D518C",
     primaryForeground: "#FFFFFF",
     primaryDisabled: "#0D518CB3",
     primaryMuted: "#0D518CB3",
     primary70: "#0D518CB3",
+    activeAccent: "#168BFF",
+    blueAccent: "#168BFF",
+    navBorder: "rgba(29, 117, 201, 0.72)",
+    card: "#181818",
+    backgroundElement: "#181818",
+    backgroundSelected: "#202020",
     border: "#2A2A2A",
     input: "#2A2A2A",
     handle: "#3A3A3C",
@@ -27,17 +30,20 @@ export const Colors = {
     error: "#FF6B6B",
   },
   dark: {
-    text: "#FFFFFF",
     background: "#101010",
-    card: "#181818",
-    backgroundElement: "#181818",
-    backgroundSelected: "#202020",
-    textSecondary: "#A3A3A3",
+    text: "#FFFFFF",
+    textSecondary: "#A7ADB8",
     primary: "#0D518C",
     primaryForeground: "#FFFFFF",
     primaryDisabled: "#0D518CB3",
     primaryMuted: "#0D518CB3",
     primary70: "#0D518CB3",
+    activeAccent: "#168BFF",
+    blueAccent: "#168BFF",
+    navBorder: "rgba(29, 117, 201, 0.72)",
+    card: "#181818",
+    backgroundElement: "#181818",
+    backgroundSelected: "#202020",
     border: "#2A2A2A",
     input: "#2A2A2A",
     handle: "#3A3A3C",
@@ -48,25 +54,61 @@ export const Colors = {
 
 export const theme = Colors.dark;
 
-// Direct color tokens matching global.css for convenient imports in any component
+// Core color tokens
 export const {
   background,
-  card,
-  backgroundElement,
-  backgroundSelected,
+  text,
+  textSecondary,
   primary,
   primaryForeground,
   primaryDisabled,
   primaryMuted,
   primary70,
-  text,
-  textSecondary,
+  activeAccent,
+  blueAccent,
+  navBorder,
+  card,
+  backgroundElement,
+  backgroundSelected,
   border,
   input,
   handle,
   ring,
   error,
 } = Colors.dark;
+
+// Clean alias mappings for navigation compatibility
+export const navBackground = background;
+export const navInactive = textSecondary;
+
+export const Gradients = {
+  primaryButton: ["#168BFF", "#064AAB"] as const,
+  tearBlue: ["#168BFF", "#0875E8"] as const,
+} as const;
+
+export const Typography = {
+  fontFamily: Platform.select({
+    ios: "Inter",
+    android: "Inter",
+    web: "Inter, Poppins, system-ui, sans-serif",
+    default: "Inter",
+  }),
+  fontFamilyPoppins: {
+    regular: "Poppins_400Regular",
+    medium: "Poppins_500Medium",
+    semiBold: "Poppins_600SemiBold",
+  },
+  tabLabel: {
+    fontFamily: Platform.select({
+      ios: "Inter",
+      android: "Inter",
+      web: "Inter, Poppins, system-ui, sans-serif",
+      default: "Inter",
+    }),
+    fontSize: 11,
+    lineHeight: 13,
+  },
+} as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 

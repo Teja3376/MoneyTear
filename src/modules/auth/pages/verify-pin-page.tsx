@@ -16,12 +16,16 @@ import { router } from "expo-router";
 import * as LocalAuthentication from "expo-local-authentication";
 
 import {
+  Typography,
+  activeAccent,
   background,
   backgroundElement,
+  blueAccent,
   border,
   error as errorColor,
   primary,
   primaryDisabled,
+  primaryForeground,
   text,
   textSecondary,
 } from "@/constants/theme";
@@ -31,6 +35,11 @@ import { PinInput } from "@/components/pin-input";
 import { getStorage } from "@/lib/storage";
 import { useVerifyPin } from "@/modules/security/hooks/useVerifyPin";
 import { getErrorMessage } from "@/lib/errors";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MoneyTearLogo } from "@/components/money-tear-logo";
+import { LogoutIcon } from "@/components/tab-icons";
+import { useLogout } from "@/modules/auth/hooks/useLogout";
+import { useSession } from "@/modules/auth/store/session-provider";
 
 
 const FINGERPRINT_ENABLED_KEY = "moneytear.fingerprint-enabled";
@@ -42,6 +51,8 @@ export default function VerifyPinPage() {
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const verifyPinMutation = useVerifyPin();
+  const logoutMutation = useLogout();
+  const { signOut } = useSession();
   const isAuthenticatingRef = useRef(false);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
@@ -75,6 +86,31 @@ export default function VerifyPinPage() {
     } catch (err) {
       setApiError(getErrorMessage(err, "Invalid PIN. Please try again."));
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out of MoneyTear?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logoutMutation.mutateAsync();
+            } catch (err) {
+              console.warn("Logout error:", err);
+              await signOut();
+            } finally {
+              await getStorage().setItem(PIN_VERIFIED_KEY, "false");
+              router.replace("/(auth)/login");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const triggerFingerprintUnlock = useCallback(async () => {
@@ -257,6 +293,26 @@ export default function VerifyPinPage() {
 
   return (
     <View style={styles.screen}>
+      {/* Top Header with Centered Wordmark and Right Logout Button */}
+      <SafeAreaView style={styles.topBarContainer} edges={["top", "left", "right"]}>
+        <View style={styles.topBar}>
+          <View style={styles.sideSpacer} />
+          <MoneyTearLogo width={140} height={28} />
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [
+              styles.logoutButton,
+              pressed && styles.logoutButtonPressed,
+            ]}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Log out"
+          >
+            <LogoutIcon size={34} color={activeAccent} />
+          </Pressable>
+        </View>
+      </SafeAreaView>
+
       <ScrollView
         contentContainerStyle={styles.pageContent}
         keyboardShouldPersistTaps="handled"
@@ -358,7 +414,7 @@ export default function VerifyPinPage() {
               value={fingerprintEnabled}
               onValueChange={handleToggleFingerprint}
               trackColor={{ false: border, true: primary }}
-              thumbColor="#FFFFFF"
+              thumbColor={primaryForeground}
               ios_backgroundColor={border}
             />
           </View>
@@ -387,14 +443,14 @@ const styles = StyleSheet.create({
     color: text,
     fontSize: 27,
     lineHeight: 36,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: Typography.fontFamilyPoppins.semiBold,
   },
   subtitle: {
     color: textSecondary,
     fontSize: 14,
     lineHeight: 22,
     marginTop: 6,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: Typography.fontFamilyPoppins.regular,
   },
   form: { gap: 20 },
   forgotRow: {
@@ -404,7 +460,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: textSecondary,
     fontSize: 13,
-    fontFamily: "Poppins_500Medium",
+    fontFamily: Typography.fontFamilyPoppins.medium,
   },
   submitButton: {
     minHeight: 56,
@@ -418,7 +474,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: Typography.fontFamilyPoppins.semiBold,
   },
   biometricCard: {
     flexDirection: "row",
@@ -443,9 +499,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#0D518C1F",
+    backgroundColor: backgroundElement,
     borderWidth: 1,
-    borderColor: "#0D518C33",
+    borderColor: border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -481,13 +537,13 @@ const styles = StyleSheet.create({
   biometricTitle: {
     color: text,
     fontSize: 14,
-    fontFamily: "Poppins_500Medium",
+    fontFamily: Typography.fontFamilyPoppins.medium,
   },
   biometricSubtitle: {
     color: textSecondary,
     fontSize: 11,
     lineHeight: 16,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: Typography.fontFamilyPoppins.regular,
     marginTop: 1,
   },
   privacyNote: {
@@ -495,7 +551,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 11,
     lineHeight: 18,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: Typography.fontFamilyPoppins.regular,
     marginTop: -4,
   },
   pressed: { opacity: 0.78 },
@@ -503,9 +559,31 @@ const styles = StyleSheet.create({
   errorText: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
+    fontFamily: Typography.fontFamilyPoppins.regular,
     textAlign: "center",
     marginTop: 4,
+  },
+  topBarContainer: {
+    backgroundColor: background,
+  },
+  topBar: {
+    height: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  sideSpacer: {
+    width: 36,
+    height: 36,
+  },
+  logoutButton: {
+    padding: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutButtonPressed: {
+    opacity: 0.6,
   },
 });
 
