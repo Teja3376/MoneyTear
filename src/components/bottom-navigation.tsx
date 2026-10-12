@@ -186,6 +186,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
           />
         </Svg>
 
+
         {/* Primary Floating Action Add Button with smooth + to x rotation */}
         <View style={[styles.addButtonContainer, { left: cx - 29 }]}>
           <Pressable
@@ -301,17 +302,7 @@ const styles = StyleSheet.create({
     height: 70,
     position: "relative",
   },
-  addAmbientGlow: {
-    position: "absolute",
-    top: -40,
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: activeAccent,
-    opacity: 0.15,
-    zIndex: 5,
-    ...(Platform.OS === "web" ? { filter: "blur(9px)" } : {}),
-  },
+
   addButtonContainer: {
     position: "absolute",
     top: -24,
