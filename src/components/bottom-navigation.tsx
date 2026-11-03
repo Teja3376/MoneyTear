@@ -12,6 +12,7 @@ import { Text } from "@/components/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { ClipPath, Defs, Path } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
+import type { BottomTabBarProps } from "expo-router/tabs";
 
 import {
   Gradients,
@@ -30,19 +31,9 @@ import {
   ProfileIcon,
 } from "@/components/tab-icons";
 
-export interface BottomNavigationProps {
-  state?: {
-    index: number;
-    routes: { key: string; name: string }[];
-  };
-  navigation?: {
-    navigate: (name: string) => void;
-    emit?: (event: any) => any;
-  };
-  descriptors?: Record<string, any>;
+export type BottomNavigationProps = BottomTabBarProps & {
   onPressAdd?: () => void;
-  onTabPress?: (route: string) => void;
-}
+};
 
 interface TabItemConfig {
   key: string;
@@ -58,14 +49,14 @@ const TABS: TabItemConfig[] = [
   { key: "profile", name: "Profile", route: "profile", IconComponent: ProfileIcon },
 ];
 
-export function BottomNavigation(props?: BottomNavigationProps) {
+export function BottomNavigation(props: BottomNavigationProps) {
   const insets = useSafeAreaInsets();
   const screenWidth = Dimensions.get("window").width;
   const [barWidth, setBarWidth] = useState(screenWidth - 16);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Highlight the tab of the screen that's showing
-  const activeRouteName = props?.state?.routes[props.state.index]?.name ?? "index";
+  const activeRouteName = props.state.routes[props.state.index]?.name ?? "index";
   const activeTabIndex = Math.max(0, TABS.findIndex((t) => t.route === activeRouteName));
 
   // X center of each tab, skipping the middle button slot
@@ -107,7 +98,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
       mass: 0.7,
       useNativeDriver: true,
     }).start();
-    props?.onPressAdd?.();
+    props.onPressAdd?.();
   };
 
   const plusRotation = rotateAnim.interpolate({
@@ -123,9 +114,14 @@ export function BottomNavigation(props?: BottomNavigationProps) {
     }
   };
 
-  const handleTabPress = (route: string) => {
-    props?.navigation?.navigate(route);
-    props?.onTabPress?.(route);
+  // Same as expo-router's default tab bar: emit tabPress, then switch by route key
+  const handleTabPress = (routeName: string) => {
+    const route = props.state.routes.find((r) => r.name === routeName);
+    if (!route) return;
+    const event = props.emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+    if (routeName !== activeRouteName && !event.defaultPrevented) {
+      props.navigateToTab(route.key);
+    }
   };
 
   const h = 70;
