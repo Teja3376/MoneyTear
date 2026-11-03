@@ -6,10 +6,9 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
+import { Text, TextInput } from "@/components/text";
 
 import {
   background,
@@ -20,21 +19,18 @@ import {
   text,
   textSecondary,
 } from "@/constants/theme";
-import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
-import { profileSchema, type ProfileForm } from "@/modules/auth/schemas";
+import { profileSchema, type ProfileForm } from "@/modules/auth/schema";
 import {
   CalendarIcon,
   DatePickerSheet,
   formatDate,
   formatDateYMD,
-} from "@/components/date-picker-sheet";
+} from "@/modules/auth/ui/date-picker-sheet";
 import { router } from "expo-router";
 import { useUpdateProfile } from "@/modules/users/hooks/useUpdateProfile";
 import { getErrorMessage } from "@/lib/errors";
 
-
 export default function ProfilePage() {
-  const [fontsLoaded] = useAuthFonts();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -72,9 +68,6 @@ export default function ProfilePage() {
     }
 
   };
-
-
-  if (!fontsLoaded) return <View style={styles.loading} />;
 
   return (
     <View style={styles.screen}>
@@ -268,7 +261,6 @@ export default function ProfilePage() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: background },
-  loading: { flex: 1, backgroundColor: background },
   pageContent: {
     flexGrow: 1,
     justifyContent: "center",
@@ -281,20 +273,19 @@ const styles = StyleSheet.create({
     color: text,
     fontSize: 27,
     lineHeight: 36,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   subtitle: {
     color: textSecondary,
     fontSize: 14,
     lineHeight: 22,
     marginTop: 6,
-    fontFamily: "Poppins_400Regular",
   },
   form: { gap: 20 },
   nameRow: { flexDirection: "row", gap: 12 },
   halfField: { flex: 1, gap: 8 },
   field: { gap: 8 },
-  label: { color: text, fontSize: 13, fontFamily: "Poppins_500Medium" },
+  label: { color: text, fontSize: 13, fontWeight: "500" },
   input: {
     minHeight: 54,
     borderWidth: 1,
@@ -304,7 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     color: text,
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
   },
   dateInput: {
     minHeight: 54,
@@ -317,18 +307,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  dateText: { color: text, fontSize: 14, fontFamily: "Poppins_400Regular" },
+  dateText: { color: text, fontSize: 14 },
   placeholder: { color: textSecondary },
   errorText: {
     color: error,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
     marginTop: -4,
   },
   successText: {
     color: "#7ED6A7",
     fontSize: 12,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
     marginTop: -4,
   },
   submitButton: {
@@ -344,7 +333,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   submitArrow: { color: text, fontSize: 19 },
   privacyNote: {
@@ -352,7 +341,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 11,
     lineHeight: 18,
-    fontFamily: "Poppins_400Regular",
     marginTop: -8,
   },
   pressed: { opacity: 0.78 },

@@ -6,9 +6,9 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { ClipPath, Defs, Path } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
@@ -62,14 +62,13 @@ export function BottomNavigation(props?: BottomNavigationProps) {
   const insets = useSafeAreaInsets();
   const screenWidth = Dimensions.get("window").width;
   const [barWidth, setBarWidth] = useState(screenWidth - 16);
-  const [selectedTab, setSelectedTab] = useState("index");
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // Active tab state for testing transitions without changing the screen
-  const activeRouteName = selectedTab;
+  // Highlight the tab of the screen that's showing
+  const activeRouteName = props?.state?.routes[props.state.index]?.name ?? "index";
   const activeTabIndex = Math.max(0, TABS.findIndex((t) => t.route === activeRouteName));
 
-  // Compute horizontal center X for each tab
+  // X center of each tab, skipping the middle button slot
   const getTabCenterX = (index: number, width: number) => {
     const tabWidth = (width - 68) / 4;
     if (index === 0) return tabWidth * 0.5;
@@ -79,7 +78,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
     return tabWidth * 0.5;
   };
 
-  // Gliding indicator animation
+  // Indicator slide to the active tab
   const glideAnim = useRef(
     new Animated.Value(getTabCenterX(0, screenWidth - 16))
   ).current;
@@ -95,7 +94,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
     }).start();
   }, [activeTabIndex, barWidth, glideAnim]);
 
-  // + to x rotation animation
+  // Rotate the add button from + to x
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   const handleToggleAdd = () => {
@@ -116,6 +115,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
     outputRange: ["0deg", "45deg"],
   });
 
+  // Re-measure the bar when its width changes
   const onLayoutBar = (event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
     if (width > 0 && Math.abs(width - barWidth) > 1) {
@@ -123,23 +123,19 @@ export function BottomNavigation(props?: BottomNavigationProps) {
     }
   };
 
-  // Tab switch for testing without route navigation
   const handleTabPress = (route: string) => {
-    setSelectedTab(route);
-    if (props?.onTabPress) {
-      props.onTabPress(route);
-    }
+    props?.navigation?.navigate(route);
+    props?.onTabPress?.(route);
   };
 
-  // Dimensions
   const h = 70;
   const w = barWidth;
-  const r = 26; // Corner radius
+  const r = 26;
   const cx = w / 2;
-  const notchWidth = 58; // Scoop reaches from cx - 42 to cx + 42
-  const notchDepth = 48; // Scoop depth
+  const notchWidth = 58;
+  const notchDepth = 48;
 
-  // Shallow crescent notch curve
+  // Bar shape with a notch cut for the add button
   const notchSvgPath = [
     `M ${r} 0`,
     `L ${cx - notchWidth} 0`,
@@ -167,16 +163,14 @@ export function BottomNavigation(props?: BottomNavigationProps) {
         style={styles.navBarWrapper}
         onLayout={onLayoutBar}
       >
-        {/* SVG Background with Shallow Crescent Notch and Inside Stroke */}
         <Svg width={w} height={h} style={StyleSheet.absoluteFill}>
           <Defs>
             <ClipPath id="notchClip">
               <Path d={notchSvgPath} />
             </ClipPath>
           </Defs>
-          {/* Base fill - common #101010 */}
           <Path d={notchSvgPath} fill={background} />
-          {/* Inside stroke (outer half clipped out, leaving only inside stroke) */}
+          {/* Border drawn inside the shape only */}
           <Path
             d={notchSvgPath}
             fill="none"
@@ -186,8 +180,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
           />
         </Svg>
 
-
-        {/* Primary Floating Action Add Button with smooth + to x rotation */}
+        {/* Add button */}
         <View style={[styles.addButtonContainer, { left: cx - 29 }]}>
           <Pressable
             onPress={handleToggleAdd}
@@ -211,9 +204,8 @@ export function BottomNavigation(props?: BottomNavigationProps) {
           </Pressable>
         </View>
 
-        {/* 5-Column Navigation Row with smooth glide effect */}
         <View style={styles.tabRow}>
-          {/* Soft ambient glow gliding smoothly under active tab icon */}
+          {/* Glow under the active tab */}
           <Animated.View
             pointerEvents="none"
             style={[
@@ -224,7 +216,7 @@ export function BottomNavigation(props?: BottomNavigationProps) {
             ]}
           />
 
-          {/* Gliding active indicator bar under active tab */}
+          {/* Active tab indicator */}
           <Animated.View
             pointerEvents="none"
             style={[
@@ -235,19 +227,15 @@ export function BottomNavigation(props?: BottomNavigationProps) {
             ]}
           />
 
-          {/* Tab 1: Home */}
           {renderTabButton(TABS[0], activeRouteName === TABS[0].route, handleTabPress)}
 
-          {/* Tab 2: Category */}
           {renderTabButton(TABS[1], activeRouteName === TABS[1].route, handleTabPress)}
 
-          {/* Center Spacer for Floating Button Notch */}
+          {/* Space under the add button */}
           <View style={styles.centerSpacer} />
 
-          {/* Tab 3: History */}
           {renderTabButton(TABS[2], activeRouteName === TABS[2].route, handleTabPress)}
 
-          {/* Tab 4: Profile */}
           {renderTabButton(TABS[3], activeRouteName === TABS[3].route, handleTabPress)}
         </View>
       </View>
@@ -382,7 +370,6 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   tabLabel: {
-    fontFamily: Typography.tabLabel.fontFamily,
     fontSize: Typography.tabLabel.fontSize,
     lineHeight: Typography.tabLabel.lineHeight,
     textAlign: "center",

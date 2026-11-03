@@ -1,6 +1,8 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AuthState } from "../types";
+import { authKeys } from "./keys";
+import { userKeys } from "@/modules/users/hooks/keys";
 
 export const useBootstrapAuth = () => {
   const queryClient = useQueryClient();
@@ -12,8 +14,8 @@ export const useBootstrapAuth = () => {
       return response.data;
     },
     onSuccess: (state) => {
-      queryClient.setQueryData(["auth", "state"], state);
-      queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+      queryClient.setQueryData(authKeys.state(), state);
+      queryClient.invalidateQueries({ queryKey: userKeys.me() });
     },
   });
 };

@@ -36,7 +36,6 @@ export function CategoryIcon({ size = 24, color = textSecondary, strokeWidth = 1
 export function HistoryIcon({ size = 24, color = textSecondary, strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Receipt body with zigzag bottom */}
       <Path
         d="M5.5 4C5.5 3.44772 5.94772 3 6.5 3H17.5C18.0523 3 18.5 3.44772 18.5 4V19.5L16.2 18.2L14 19.5L12 18.2L10 19.5L7.8 18.2L5.5 19.5V4Z"
         stroke={color}
@@ -44,7 +43,6 @@ export function HistoryIcon({ size = 24, color = textSecondary, strokeWidth = 1.
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Horizontal text lines */}
       <Path
         d="M8.5 8H15.5"
         stroke={color}
@@ -64,7 +62,6 @@ export function HistoryIcon({ size = 24, color = textSecondary, strokeWidth = 1.
 export function ProfileIcon({ size = 24, color = textSecondary, strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Outer Circle */}
       <Circle
         cx="12"
         cy="12"
@@ -72,7 +69,6 @@ export function ProfileIcon({ size = 24, color = textSecondary, strokeWidth = 1.
         stroke={color}
         strokeWidth={strokeWidth}
       />
-      {/* Head */}
       <Circle
         cx="12"
         cy="9.5"
@@ -80,7 +76,6 @@ export function ProfileIcon({ size = 24, color = textSecondary, strokeWidth = 1.
         stroke={color}
         strokeWidth={strokeWidth}
       />
-      {/* Shoulders */}
       <Path
         d="M6.8 18.2C7.8 15.6 9.7 14.5 12 14.5C14.3 14.5 16.2 15.6 17.2 18.2"
         stroke={color}
@@ -108,7 +103,6 @@ export function PlusIcon({ size = 24, color = primaryForeground, strokeWidth = 2
 export function LogoutIcon({ size = 22, color = primary, strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Door frame */}
       <Path
         d="M14 4H7.5C6.4 4 5.5 4.9 5.5 6V18C5.5 19.1 6.4 20 7.5 20H14"
         stroke={color}
@@ -116,14 +110,12 @@ export function LogoutIcon({ size = 22, color = primary, strokeWidth = 1.8 }: Ic
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Arrow shaft */}
       <Path
         d="M10.5 12H19.5"
         stroke={color}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
-      {/* Arrow head */}
       <Path
         d="M16 8.5L19.5 12L16 15.5"
         stroke={color}

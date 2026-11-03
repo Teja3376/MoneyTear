@@ -1,6 +1,8 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { PinMutationResult, SetupPinRequest } from "../types";
+import { authKeys } from "@/modules/auth/hooks/keys";
+import { securityKeys } from "./keys";
 
 export const useSetupPin = () => {
   const queryClient = useQueryClient();
@@ -12,8 +14,8 @@ export const useSetupPin = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["security", "pinStatus"] });
-      queryClient.invalidateQueries({ queryKey: ["auth", "state"] });
+      queryClient.invalidateQueries({ queryKey: securityKeys.pinStatus() });
+      queryClient.invalidateQueries({ queryKey: authKeys.state() });
     },
   });
 };

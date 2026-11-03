@@ -56,21 +56,21 @@ Docs: https://docs.expo.dev/eas/index.md
   - `border`: `#2A2A2A`
   - `handle`: `#3A3A3C`
   - `error`: `#FF6B6B`
-- **Typography**: `@expo-google-fonts/poppins` (`Poppins_400Regular`, `Poppins_500Medium`, `Poppins_600SemiBold`).
+- **Typography**: Poppins (400/500/600) is loaded once in `src/app/_layout.tsx` as the family `"Poppins"`. Import `Text` / `TextInput` from `@/components/text` (never from `react-native`) and set only `fontWeight` in styles — no `fontFamily`.
 
 ### 2. Core Reusable Layout & Components
-- **`AuthScreenLayout`** (`src/modules/auth/components/auth-screen-layout.tsx`):
+- **`AuthScreenLayout`** (`src/modules/auth/ui/auth-screen-layout.tsx`):
   - Shared authentication screen layout with dark theme, safe-area insets, and bottom sheet animation.
   - Automatic keyboard detection (listens directly to `keyboardDidShow` / `keyboardWillShow`).
   - Adaptive keyboard handling (`KeyboardAvoidingView` with `behavior="height"` on Android and `"padding"` on iOS).
   - When the software keyboard opens, `topArea` collapses to compact mode (`flex: 0`) and `formPanel` becomes `flex: 1` so inputs and submit buttons are never obscured.
-- **`DatePickerSheet` & `Calendar`** (`src/components/date-picker-sheet.tsx` & `src/components/calendar.tsx`):
+- **`DatePickerSheet` & `Calendar`** (`src/modules/auth/ui/date-picker-sheet.tsx`):
   - Standalone `<Calendar />` view and bottom-sheet `<DatePickerSheet />` modal.
   - Wrapped in native React Native `<Modal transparent>` to guarantee anchoring to the bottom of the device window regardless of container nesting.
   - 3 view modes: Days grid, Months grid (3 columns), Years scrollable list with auto-scroll to the selected year.
   - Timezone safety: exports `formatDateYMD(date)` and sets noon local time (`12:00:00`) to prevent UTC date rollover bugs (e.g. June 12 rolling back to June 11 in IST).
   - Theme-matched vector-less `<CalendarIcon />`.
-- **`PinInput`** (`src/components/pin-input.tsx`):
+- **`PinInput`** (`src/modules/auth/ui/pin-input.tsx`):
   - 4-digit PIN input with 4 styled digit boxes, active focus border, and masked dots (`●`).
   - Built-in "Show / Hide" PIN toggle button.
   - Android IME safe hidden input (`opacity: 1`, `color: "transparent"`, `fontSize: 1`) to guarantee Android keyboards (such as Gboard) never drop keystrokes.
@@ -88,9 +88,9 @@ All screens are registered under `src/app/(auth)/_layout.tsx` with smooth horizo
    - 6-digit OTP input with custom blinking cursor and autofill/SMS support.
    - Resend countdown timer (30 seconds).
    - Keyboard checkmark action (`returnKeyType="done"`) triggering verification.
-   - Submitting routes to `/(auth)/profile`.
+   - Submitting routes to `/(auth)/profile-details`.
 
-3. **Profile Details Page** (`src/modules/auth/pages/profile-page.tsx`, route `/(auth)/profile`):
+3. **Profile Details Page** (`src/modules/auth/pages/profile-page.tsx`, route `/(auth)/profile-details`):
    - First name, Last name, Email address, and Date of birth fields with Zod validation.
    - Date picker trigger connected to the common `DatePickerSheet`.
    - Submitting routes to `/(auth)/set-pin`.
@@ -134,12 +134,12 @@ Full rationale and risks: `FRONTEND_ARCHITECTURE_PLAN.md`.
   `src/app/index.tsx` is the anchor and routes on session state. The splash screen is held until
   the session resolves, so protected content never flashes.
 - **TanStack Query**: one `QueryClient` (`src/lib/query-client.ts`) mounted once by
-  `QueryProvider`. Keys come from the factory in `src/lib/query-keys.ts`; invalidation is
+  `QueryProvider`. Keys come from each module's `hooks/keys.ts` (`authKeys`, `securityKeys`, `userKeys`); invalidation is
   targeted, never blanket.
-- **Feature modules**: `src/modules/{auth,users,security}/{api,hooks,types}` — `api` does the
-  HTTP call, `hooks` own cache state, `types` mirror the API DTOs, `schemas` (auth only) hold
+- **Feature modules**: `src/modules/{auth,users,security,home,category,history,profile}/{pages,ui,hooks,schema,types}` — see README "Project structure". `pages` are
+  screens, `ui` is module-only parts, `hooks` call the API and own cache state, `types` mirror the API DTOs, `schema` (auth only) holds
   the Zod form schemas extracted out of the page files.
 - **Conventions**: `useQuery.isPending` for a query's first load, `isFetching` for any in-flight
   request, `useMutation.isPending` to disable submit controls. Field errors inline; operation
   errors rendered by the page. No toast library is installed and none was added.
-- **Checks**: `npm run typecheck`, `npm test`, `npm run lint`, or `npm run verify`.
+- **Checks**: `npm run build` (typecheck), `npm run lint`, or `npm run verify`.

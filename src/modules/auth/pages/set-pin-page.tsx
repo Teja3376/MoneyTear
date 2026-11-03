@@ -5,9 +5,9 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/text";
 import { router } from "expo-router";
 
 import {
@@ -19,15 +19,12 @@ import {
   text,
   textSecondary,
 } from "@/constants/theme";
-import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
-import { setPinSchema, type SetPinForm } from "@/modules/auth/schemas";
-import { PinInput } from "@/components/pin-input";
+import { setPinSchema, type SetPinForm } from "@/modules/auth/schema";
+import { PinInput } from "@/modules/auth/ui/pin-input";
 import { useSetupPin } from "@/modules/security/hooks/useSetupPin";
 import { getErrorMessage } from "@/lib/errors";
 
-
 export default function SetPinPage() {
-  const [fontsLoaded] = useAuthFonts();
   const setupPinMutation = useSetupPin();
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -61,9 +58,6 @@ export default function SetPinPage() {
     }
 
   };
-
-
-  if (!fontsLoaded) return <View style={styles.loading} />;
 
   return (
     <View style={styles.screen}>
@@ -138,10 +132,8 @@ export default function SetPinPage() {
   );
 }
 
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: background },
-  loading: { flex: 1, backgroundColor: background },
   pageContent: {
     flexGrow: 1,
     justifyContent: "center",
@@ -154,14 +146,13 @@ const styles = StyleSheet.create({
     color: text,
     fontSize: 27,
     lineHeight: 36,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   subtitle: {
     color: textSecondary,
     fontSize: 14,
     lineHeight: 22,
     marginTop: 6,
-    fontFamily: "Poppins_400Regular",
   },
   form: { gap: 24 },
   submitButton: {
@@ -176,14 +167,13 @@ const styles = StyleSheet.create({
   submitText: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   privacyNote: {
     color: textSecondary,
     textAlign: "center",
     fontSize: 11,
     lineHeight: 18,
-    fontFamily: "Poppins_400Regular",
     marginTop: -8,
   },
   pressed: { opacity: 0.78 },
@@ -191,7 +181,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
     textAlign: "center",
     marginTop: 4,
   },

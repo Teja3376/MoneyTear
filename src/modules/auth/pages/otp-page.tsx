@@ -5,21 +5,21 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
   useWindowDimensions,
 } from "react-native";
+import { Text } from "@/components/text";
+import { TextInput, type TextInputInstance } from "react-native";
+
 import { router, useLocalSearchParams } from "expo-router";
 
-import AuthScreenLayout from "@/modules/auth/components/auth-screen-layout";
+import AuthScreenLayout from "@/modules/auth/ui/auth-screen-layout";
 import { theme, primary, primaryDisabled, error as errorColor } from "@/constants/theme";
 import { useVerifyOtp } from "@/modules/auth/hooks/useVerifyOtp";
 import { useSendOtp } from "@/modules/auth/hooks/useSendOtp";
 import { getErrorMessage } from "@/lib/errors";
 
 const OTP_LENGTH = 6;
-
 
 const RESEND_SECONDS = 30;
 
@@ -35,7 +35,7 @@ function getMaskedMobile(rawMobile?: string): string {
 export default function OtpPage() {
   const { mobile } = useLocalSearchParams<{ mobile?: string }>();
   const { height: screenHeight } = useWindowDimensions();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const [otp, setOtp] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
@@ -43,7 +43,7 @@ export default function OtpPage() {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  // Monitor keyboard visibility for smooth compacting of top header
+  // Compact the header while the keyboard is open
   useEffect(() => {
     const showEvent =
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -65,7 +65,7 @@ export default function OtpPage() {
     };
   }, []);
 
-  // Smooth auto-focus numeric keyboard upon entering screen
+  // Open the keyboard when the screen loads
   useEffect(() => {
     const focusTimer = setTimeout(() => {
       inputRef.current?.focus();
@@ -74,7 +74,7 @@ export default function OtpPage() {
     return () => clearTimeout(focusTimer);
   }, []);
 
-  // Resend countdown timer
+  // Resend countdown
   useEffect(() => {
     if (secondsLeft <= 0) return;
 
@@ -85,7 +85,7 @@ export default function OtpPage() {
     return () => clearInterval(timer);
   }, [secondsLeft]);
 
-  // Smooth blinking cursor indicator on active empty box
+  // Blink the cursor in the active box
   useEffect(() => {
     const interval = setInterval(() => {
       setCursorVisible((visible) => !visible);
@@ -113,7 +113,7 @@ export default function OtpPage() {
         otp,
       });
       if (!result.authState?.profileComplete) {
-        router.replace("/(auth)/profile");
+        router.replace("/(auth)/profile-details");
       } else if (!result.authState?.pinConfigured) {
         router.replace("/(auth)/set-pin");
       } else {
@@ -123,7 +123,6 @@ export default function OtpPage() {
       setErrorMessage(getErrorMessage(err, "Invalid verification code. Please try again."));
     }
   };
-
 
   const handleResend = async () => {
     if (secondsLeft > 0 || !mobile) return;
@@ -135,7 +134,6 @@ export default function OtpPage() {
       setErrorMessage(getErrorMessage(err, "Failed to resend code"));
     }
   };
-
 
   const formattedTime = `00:${String(secondsLeft).padStart(2, "0")}`;
   const isOtpComplete = otp.length === OTP_LENGTH;
@@ -181,8 +179,7 @@ export default function OtpPage() {
       }
     >
 
-
-      {/* 6-digit OTP Box Row */}
+      {/* OTP boxes */}
       <View
         style={[
           styles.otpSection,
@@ -218,7 +215,7 @@ export default function OtpPage() {
             );
           })}
 
-          {/* Hidden TextInput handling keyboard input, autofill and paste */}
+          {/* Hidden input that receives typing, paste and SMS autofill */}
           <TextInput
             ref={inputRef}
             value={otp}
@@ -262,7 +259,7 @@ export default function OtpPage() {
         <Text style={styles.errorText}>{errorMessage}</Text>
       )}
 
-      {/* Minimal Resend Section */}
+      {/* Resend */}
       <View
         style={[
           styles.resendSection,
@@ -290,7 +287,6 @@ export default function OtpPage() {
         )}
       </View>
 
-      {/* Verify & Continue Button */}
       <Pressable
         onPress={() => void handleVerify()}
         disabled={!isOtpComplete || verifyOtpMutation.isPending}
@@ -313,7 +309,6 @@ export default function OtpPage() {
 }
 
 const styles = StyleSheet.create({
-  // Minimal Top Section Header
   headerContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -326,7 +321,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: theme.text,
     fontSize: 24,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
     textAlign: "center",
     marginBottom: 6,
   },
@@ -337,7 +332,6 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     color: theme.textSecondary,
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
     textAlign: "center",
     lineHeight: 20,
   },
@@ -348,7 +342,7 @@ const styles = StyleSheet.create({
   headerMobile: {
     color: theme.text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
     textAlign: "center",
     marginTop: 6,
     letterSpacing: 0.5,
@@ -358,7 +352,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // OTP 6-box row
   otpSection: {
     marginTop: 18,
     marginBottom: 24,
@@ -397,7 +390,7 @@ const styles = StyleSheet.create({
   otpDigit: {
     color: theme.text,
     fontSize: 22,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   cursor: {
     width: 2,
@@ -413,7 +406,6 @@ const styles = StyleSheet.create({
     fontSize: 1,
   },
 
-  // Resend Section
   resendSection: {
     alignItems: "center",
     justifyContent: "center",
@@ -427,24 +419,21 @@ const styles = StyleSheet.create({
   resendPrompt: {
     color: theme.textSecondary,
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
   },
   resendTimer: {
     color: theme.textSecondary,
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
   },
   resendTimerHighlight: {
     color: primary,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   resendAction: {
     color: primary,
     fontSize: 14,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
 
-  // Verify Button
   verifyButton: {
     minHeight: 56,
     backgroundColor: primary,
@@ -465,15 +454,13 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     color: theme.text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   errorText: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
     textAlign: "center",
     marginBottom: 12,
   },
 });
-
 

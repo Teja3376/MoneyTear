@@ -1,28 +1,21 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UserProfile } from "./useGetme";
-
-export interface UpdateProfilePayload {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  dateOfBirth?: string;
-}
-
-export type UpdateProfileRequest = UpdateProfilePayload;
+import { authKeys } from "@/modules/auth/hooks/keys";
+import type { UpdateProfileRequest, UserProfile } from "../types";
+import { userKeys } from "./keys";
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ["updateProfile"],
-    mutationFn: async (payload: UpdateProfilePayload): Promise<UserProfile> => {
+    mutationFn: async (payload: UpdateProfileRequest): Promise<UserProfile> => {
       const response = await api.patch<UserProfile>("/users/me", payload);
       return response.data;
     },
     onSuccess: (profile) => {
-      queryClient.setQueryData(["user", "me"], profile);
-      queryClient.invalidateQueries({ queryKey: ["auth", "state"] });
+      queryClient.setQueryData(userKeys.me(), profile);
+      queryClient.invalidateQueries({ queryKey: authKeys.state() });
     },
   });
 };

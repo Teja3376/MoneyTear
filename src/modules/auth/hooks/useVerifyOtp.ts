@@ -1,7 +1,9 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "../store/session-provider";
 import type { AuthState } from "../types";
+import { authKeys } from "./keys";
+import { userKeys } from "@/modules/users/hooks/keys";
 
 export interface VerifyOtpPayload {
   phone: string;
@@ -25,8 +27,8 @@ export const useVerifyOtp = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["auth", "state"], data.authState);
-      queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+      queryClient.setQueryData(authKeys.state(), data.authState);
+      queryClient.invalidateQueries({ queryKey: userKeys.me() });
     },
   });
 };

@@ -1,8 +1,3 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import '@/global.css';
 
 import { Platform } from 'react-native';
@@ -54,7 +49,6 @@ export const Colors = {
 
 export const theme = Colors.dark;
 
-// Core color tokens
 export const {
   background,
   text,
@@ -77,7 +71,7 @@ export const {
   error,
 } = Colors.dark;
 
-// Clean alias mappings for navigation compatibility
+// Aliases used by the navigation bar
 export const navBackground = background;
 export const navInactive = textSecondary;
 
@@ -87,24 +81,9 @@ export const Gradients = {
 } as const;
 
 export const Typography = {
-  fontFamily: Platform.select({
-    ios: "Inter",
-    android: "Inter",
-    web: "Inter, Poppins, system-ui, sans-serif",
-    default: "Inter",
-  }),
-  fontFamilyPoppins: {
-    regular: "Poppins_400Regular",
-    medium: "Poppins_500Medium",
-    semiBold: "Poppins_600SemiBold",
-  },
+  // Loaded once in the root layout; weights 400, 500, 600.
+  fontFamily: "Poppins",
   tabLabel: {
-    fontFamily: Platform.select({
-      ios: "Inter",
-      android: "Inter",
-      web: "Inter, Poppins, system-ui, sans-serif",
-      default: "Inter",
-    }),
     fontSize: 11,
     lineHeight: 13,
   },
@@ -112,30 +91,6 @@ export const Typography = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
 
 export const Spacing = {
   half: 2,

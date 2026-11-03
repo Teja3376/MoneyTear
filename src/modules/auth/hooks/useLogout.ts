@@ -1,4 +1,4 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { endSession } from "@/lib/session";
 import type { LogoutResult } from "../types";

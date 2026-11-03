@@ -1,18 +1,4 @@
-/**
- * Platform-agnostic key/value storage for authentication credentials.
- *
- * Native builds use `expo-secure-store`:
- *   - iOS      -> Keychain (`kSecClassGenericPassword`), encrypted at rest.
- *   - Android  -> `SharedPreferences` encrypted with the Android Keystore.
- *
- * The web target has no secure primitive, so it falls back to `localStorage`,
- * which is readable by any script running on the origin. See the security
- * trade-offs section of FRONTEND_ARCHITECTURE_PLAN.md.
- *
- * Every read is guarded so this module is safe to import in environments
- * without a DOM (static rendering, unit tests, server tooling). Nothing outside
- * this file touches `localStorage`, `sessionStorage` or `SecureStore` directly.
- */
+// Token storage: SecureStore on native, localStorage on web.
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -28,7 +14,7 @@ const createWebStorage = (): KeyValueStorage => ({
     try {
       return window.localStorage.getItem(key);
     } catch {
-      // Private-browsing modes and blocked third-party storage throw on access.
+      // Private browsing throws on access.
       return null;
     }
   },
@@ -37,7 +23,7 @@ const createWebStorage = (): KeyValueStorage => ({
     try {
       window.localStorage.setItem(key, value);
     } catch {
-      // A failed write must not break sign-in; the session simply stays in memory.
+      // Ignore; the session stays in memory.
     }
   },
   async removeItem(key) {
@@ -45,7 +31,7 @@ const createWebStorage = (): KeyValueStorage => ({
     try {
       window.localStorage.removeItem(key);
     } catch {
-      // See setItem.
+      // Ignore; nothing to remove.
     }
   },
 });
@@ -56,11 +42,6 @@ const createSecureStorage = (): KeyValueStorage => ({
   removeItem: (key) => SecureStore.deleteItemAsync(key),
 });
 
-/**
- * In-memory storage. Used by unit tests and as a last-resort fallback so a
- * failing platform implementation degrades to a session-scoped store instead of
- * throwing on the sign-in path.
- */
 export const createMemoryStorage = (
   initial: Record<string, string> = {},
 ): KeyValueStorage => {
@@ -81,14 +62,12 @@ export const createMemoryStorage = (
 const createPlatformStorage = (): KeyValueStorage =>
   Platform.OS === "web" ? createWebStorage() : createSecureStorage();
 
-/** The storage instance the app uses. Replaced in tests via `setStorage`. */
 let storage: KeyValueStorage = createPlatformStorage();
 
 export function getStorage(): KeyValueStorage {
   return storage;
 }
 
-/** Test seam. Production code never calls this. */
 export function setStorage(next: KeyValueStorage): void {
   storage = next;
 }

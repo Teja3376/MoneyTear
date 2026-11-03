@@ -8,11 +8,11 @@ import {
   ScrollView,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
+import { Text } from "@/components/text";
 
 import {
   backgroundElement,
@@ -44,9 +44,7 @@ export const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
 export const CURRENT_YEAR = new Date().getFullYear();
 
-/**
- * Formats a Date object into a readable string (e.g. "15 Jan 1998").
- */
+// e.g. "15 Jan 1998"
 export function formatDate(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
   const month = MONTHS[date.getMonth()];
@@ -54,9 +52,7 @@ export function formatDate(date: Date): string {
   return `${day} ${month} ${year}`;
 }
 
-/**
- * Formats a Date object into "YYYY-MM-DD" local calendar date without UTC timezone shift.
- */
+// YYYY-MM-DD in local time, so the date never shifts with UTC.
 export function formatDateYMD(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -69,9 +65,6 @@ export interface CalendarIconProps {
   size?: number;
 }
 
-/**
- * Standard calendar icon matching MoneyTear design language.
- */
 export function CalendarIcon({ color = primary, size = 21 }: CalendarIconProps) {
   const scale = size / 21;
   return (
@@ -101,24 +94,16 @@ export function CalendarIcon({ color = primary, size = 21 }: CalendarIconProps) 
 export type CalendarMode = "days" | "years" | "months";
 
 export interface CalendarProps {
-  /** Currently selected date */
   value?: Date | null;
-  /** Callback fired when a valid date is selected */
   onSelect: (date: Date) => void;
-  /** Maximum selectable date */
   maxDate?: Date;
-  /** Minimum selectable date */
   minDate?: Date;
-  /** Initial month/year to display if value is null */
+  // month shown when value is empty
   initialDate?: Date;
-  /** Optional container style */
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Common Calendar component supporting days grid, month selection, and year scrolling.
- * Can be used standalone in any page, modal, or screen.
- */
+// Calendar with day, month and year views.
 export function Calendar({
   value,
   onSelect,
@@ -133,7 +118,7 @@ export function Calendar({
   const [calendarMode, setCalendarMode] = useState<CalendarMode>("days");
   const yearScrollRef = useRef<ScrollView>(null);
 
-  // Sync displayed month if value changes externally
+  // Jump to the month of a new value
   useEffect(() => {
     if (value) {
       setCalendarMonth(new Date(value.getFullYear(), value.getMonth(), 1));
@@ -193,6 +178,7 @@ export function Calendar({
     return currentMonthStart > minMonthStart;
   }, [calendarMonth, minDate]);
 
+  // Scroll the year list to the selected year
   useEffect(() => {
     if (calendarMode === "years") {
       requestAnimationFrame(() => {
@@ -461,30 +447,20 @@ export function Calendar({
 }
 
 export interface DatePickerSheetProps {
-  /** Controls bottom sheet visibility */
   visible: boolean;
-  /** Callback fired when the sheet requests closing */
   onClose: () => void;
-  /** Current selected date */
   value?: Date | null;
-  /** Callback fired when date is selected */
   onSelect: (date: Date) => void;
-  /** Sheet header title (default: "Select date") */
   title?: string;
-  /** Maximum selectable date */
   maxDate?: Date;
-  /** Minimum selectable date */
   minDate?: Date;
-  /** Initial date displayed if value is null */
+  // month shown when value is empty
   initialDate?: Date;
-  /** Whether selecting a day automatically dismisses the sheet (default: true) */
+  // close the sheet after picking a day (default true)
   autoCloseOnSelect?: boolean;
 }
 
-/**
- * Reusable animated Bottom Sheet Date Picker.
- * Features smooth spring slide-up, backdrop fade, month/year navigation, and full accessibility.
- */
+// Calendar inside a bottom sheet.
 export function DatePickerSheet({
   visible,
   onClose,
@@ -501,7 +477,7 @@ export function DatePickerSheet({
   const sheetY = useRef(new Animated.Value(height)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
-  // Handle opening and closing animations
+  // Slide the sheet up on open, down on close
   useEffect(() => {
     if (visible) {
       setMounted(true);
@@ -556,7 +532,7 @@ export function DatePickerSheet({
     });
   };
 
-  // Android hardware back press listener
+  // Android back button closes the sheet
   useEffect(() => {
     if (!visible) return;
     const backHandler = BackHandler.addEventListener(
@@ -647,9 +623,7 @@ export interface DatePickerFieldProps {
   disabled?: boolean;
 }
 
-/**
- * Convenience form input that displays formatted date and triggers DatePickerSheet on click.
- */
+// Form field that shows the date and opens the sheet on tap.
 export function DatePickerField({
   label,
   value,
@@ -745,7 +719,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     color: text,
     fontSize: 18,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   closeButton: {
     width: 32,
@@ -792,7 +766,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   expandMark: {
     color: textSecondary,
@@ -811,7 +785,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
     color: textSecondary,
     fontSize: 11,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   dateCell: {
     width: "14.2857%",
@@ -835,11 +809,10 @@ const styles = StyleSheet.create({
   dayText: {
     color: text,
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
   },
   selectedDayText: {
     color: primaryForeground,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   disabledDayText: {
     color: textSecondary,
@@ -862,12 +835,12 @@ const styles = StyleSheet.create({
   backModeText: {
     color: primary,
     fontSize: 14,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   modeSubTitle: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   backModeButtonPlaceholder: {
     minWidth: 60,
@@ -890,7 +863,7 @@ const styles = StyleSheet.create({
   yearText: {
     color: textSecondary,
     fontSize: 15,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   monthGrid: {
     flexDirection: "row",
@@ -912,7 +885,7 @@ const styles = StyleSheet.create({
   monthOptionText: {
     color: text,
     fontSize: 14,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   calendarIcon: {
     width: 21,
@@ -952,7 +925,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     color: text,
     fontSize: 13,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   dateInput: {
     minHeight: 54,
@@ -968,7 +941,6 @@ const styles = StyleSheet.create({
   dateInputText: {
     color: text,
     fontSize: 14,
-    fontFamily: "Poppins_400Regular",
   },
   placeholderText: {
     color: textSecondary,
@@ -976,7 +948,6 @@ const styles = StyleSheet.create({
   fieldError: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
     marginTop: -4,
   },
   pressed: {

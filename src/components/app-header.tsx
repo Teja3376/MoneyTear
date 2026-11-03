@@ -49,12 +49,11 @@ export function AppHeader({ onLogout }: AppHeaderProps) {
   return (
     <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.contentRow}>
-        {/* Brand Logo in center */}
         <View style={styles.centerContainer}>
           <MoneyTearLogo width={151} height={31} />
         </View>
 
-        {/* Right Logout Icon Button - modern borderless icon */}
+        {/* Logout */}
         <Pressable
           onPress={handleLogout}
           style={({ pressed }) => [

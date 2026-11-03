@@ -9,14 +9,13 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/text";
 import { router } from "expo-router";
 import * as LocalAuthentication from "expo-local-authentication";
 
 import {
-  Typography,
   activeAccent,
   background,
   backgroundElement,
@@ -29,9 +28,8 @@ import {
   text,
   textSecondary,
 } from "@/constants/theme";
-import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
-import { verifyPinSchema, type VerifyPinForm } from "@/modules/auth/schemas";
-import { PinInput } from "@/components/pin-input";
+import { verifyPinSchema, type VerifyPinForm } from "@/modules/auth/schema";
+import { PinInput } from "@/modules/auth/ui/pin-input";
 import { getStorage } from "@/lib/storage";
 import { useVerifyPin } from "@/modules/security/hooks/useVerifyPin";
 import { getErrorMessage } from "@/lib/errors";
@@ -41,13 +39,11 @@ import { LogoutIcon } from "@/components/tab-icons";
 import { useLogout } from "@/modules/auth/hooks/useLogout";
 import { useSession } from "@/modules/auth/store/session-provider";
 
-
 const FINGERPRINT_ENABLED_KEY = "moneytear.fingerprint-enabled";
 const LEGACY_BIOMETRIC_KEY = "moneytear.biometric-enabled";
 const PIN_VERIFIED_KEY = "moneytear.pin-verified-for-biometrics";
 
 export default function VerifyPinPage() {
-  const [fontsLoaded] = useAuthFonts();
   const [fingerprintEnabled, setFingerprintEnabled] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const verifyPinMutation = useVerifyPin();
@@ -71,6 +67,7 @@ export default function VerifyPinPage() {
   const pinValue = watch("pin");
   const isComplete = pinValue.length === 4;
 
+  // Verify the PIN, remember it for fingerprint unlock, then open the app
   const onSubmit = async (values: VerifyPinForm) => {
     setApiError(null);
     try {
@@ -88,6 +85,7 @@ export default function VerifyPinPage() {
     }
   };
 
+  // Confirm, log out on the server, and sign out locally even if that fails
   const handleLogout = () => {
     Alert.alert(
       "Log Out",
@@ -113,6 +111,7 @@ export default function VerifyPinPage() {
     );
   };
 
+  // Unlock with fingerprint; the ref stops two prompts at once
   const triggerFingerprintUnlock = useCallback(async () => {
     if (isAuthenticatingRef.current) return;
 
@@ -147,7 +146,7 @@ export default function VerifyPinPage() {
     }
   }, []);
 
-  // Load persisted fingerprint preference and trigger prompt if enabled & PIN was verified
+  // Load the fingerprint setting and prompt if it's on
   useEffect(() => {
     let isMounted = true;
 
@@ -178,7 +177,7 @@ export default function VerifyPinPage() {
     };
   }, [triggerFingerprintUnlock]);
 
-  // Handle returning to the app from background/inactive state
+  // Prompt again when the app returns from background
   useEffect(() => {
     const subscription = AppState.addEventListener(
       "change",
@@ -215,7 +214,7 @@ export default function VerifyPinPage() {
       return;
     }
 
-    // Must enter 4-digit PIN first before enabling fingerprint
+    // Need the PIN before turning on fingerprint
     if (pinValue.length !== 4) {
       Alert.alert(
         "Enter PIN First",
@@ -252,7 +251,7 @@ export default function VerifyPinPage() {
         return;
       }
 
-      // Verify PIN initially with the API before linking fingerprint
+      // Check the PIN with the API first
       const verifyResult = await verifyPinMutation.mutateAsync({ pin: pinValue });
       if (!verifyResult.verified) {
         setApiError("Invalid PIN. Please try again.");
@@ -260,7 +259,7 @@ export default function VerifyPinPage() {
         return;
       }
 
-      // Prompt fingerprint authentication to confirm and link hardware
+      // Then confirm with fingerprint
       const authResult = await LocalAuthentication.authenticateAsync({
         promptMessage: "Scan fingerprint to link with your PIN",
         cancelLabel: "Cancel",
@@ -271,7 +270,6 @@ export default function VerifyPinPage() {
         setFingerprintEnabled(true);
         await getStorage().setItem(FINGERPRINT_ENABLED_KEY, "true");
         await getStorage().setItem(PIN_VERIFIED_KEY, "true");
-        // Seamlessly unlock into app
         router.replace("/(tabs)");
       } else {
         setFingerprintEnabled(false);
@@ -289,11 +287,9 @@ export default function VerifyPinPage() {
     }
   };
 
-  if (!fontsLoaded) return <View style={styles.loading} />;
-
   return (
     <View style={styles.screen}>
-      {/* Top Header with Centered Wordmark and Right Logout Button */}
+      {/* Header: logo and logout */}
       <SafeAreaView style={styles.topBarContainer} edges={["top", "left", "right"]}>
         <View style={styles.topBar}>
           <View style={styles.sideSpacer} />
@@ -373,8 +369,7 @@ export default function VerifyPinPage() {
             </Text>
           </Pressable>
 
-
-          {/* Enable Fingerprint Section at the bottom */}
+          {/* Fingerprint toggle */}
           <View style={styles.biometricCard}>
             <Pressable
               style={styles.biometricInfo}
@@ -430,7 +425,6 @@ export default function VerifyPinPage() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: background },
-  loading: { flex: 1, backgroundColor: background },
   pageContent: {
     flexGrow: 1,
     justifyContent: "center",
@@ -443,14 +437,13 @@ const styles = StyleSheet.create({
     color: text,
     fontSize: 27,
     lineHeight: 36,
-    fontFamily: Typography.fontFamilyPoppins.semiBold,
+    fontWeight: "600",
   },
   subtitle: {
     color: textSecondary,
     fontSize: 14,
     lineHeight: 22,
     marginTop: 6,
-    fontFamily: Typography.fontFamilyPoppins.regular,
   },
   form: { gap: 20 },
   forgotRow: {
@@ -460,7 +453,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: textSecondary,
     fontSize: 13,
-    fontFamily: Typography.fontFamilyPoppins.medium,
+    fontWeight: "500",
   },
   submitButton: {
     minHeight: 56,
@@ -474,7 +467,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: text,
     fontSize: 15,
-    fontFamily: Typography.fontFamilyPoppins.semiBold,
+    fontWeight: "600",
   },
   biometricCard: {
     flexDirection: "row",
@@ -537,13 +530,12 @@ const styles = StyleSheet.create({
   biometricTitle: {
     color: text,
     fontSize: 14,
-    fontFamily: Typography.fontFamilyPoppins.medium,
+    fontWeight: "500",
   },
   biometricSubtitle: {
     color: textSecondary,
     fontSize: 11,
     lineHeight: 16,
-    fontFamily: Typography.fontFamilyPoppins.regular,
     marginTop: 1,
   },
   privacyNote: {
@@ -551,7 +543,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 11,
     lineHeight: 18,
-    fontFamily: Typography.fontFamilyPoppins.regular,
     marginTop: -4,
   },
   pressed: { opacity: 0.78 },
@@ -559,7 +550,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: Typography.fontFamilyPoppins.regular,
     textAlign: "center",
     marginTop: 4,
   },

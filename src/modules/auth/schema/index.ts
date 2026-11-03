@@ -1,19 +1,6 @@
-/**
- * Zod schemas for the authentication journey's forms.
- *
- * These were previously declared inline in each page. Extracting them keeps the
- * rules and the user-facing messages byte-for-byte identical while giving one
- * place to test them and to derive form value types.
- *
- * Convention:
- *   - `z.infer` is the form value type; no hand-written duplicates.
- *   - Validation messages are written for the user, never for the log.
- *   - These schemas describe the *form*, not the API payload. Mapping a form to
- *     a request body happens in the hook that owns the operation.
- */
 import { z } from "zod";
 
-/** Mobile number screen. */
+// Login: mobile number
 export const mobileSchema = z.object({
   mobile: z
     .string()
@@ -22,7 +9,7 @@ export const mobileSchema = z.object({
 
 export type MobileForm = z.infer<typeof mobileSchema>;
 
-/** Profile details screen. */
+// Profile details
 export const profileSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required."),
   lastName: z.string().trim().min(1, "Last name is required."),
@@ -38,7 +25,7 @@ export const profileSchema = z.object({
 
 export type ProfileForm = z.infer<typeof profileSchema>;
 
-/** Set PIN screen. */
+// Set PIN: both PINs must match
 export const setPinSchema = z
   .object({
     newPin: z.string().regex(/^\d{4}$/, "Enter a 4-digit PIN."),
@@ -51,14 +38,14 @@ export const setPinSchema = z
 
 export type SetPinForm = z.infer<typeof setPinSchema>;
 
-/** Verify PIN screen. */
+// Verify PIN
 export const verifyPinSchema = z.object({
   pin: z.string().regex(/^\d{4}$/, "Enter your 4-digit PIN."),
 });
 
 export type VerifyPinForm = z.infer<typeof verifyPinSchema>;
 
-/** Reset PIN screen. */
+// Reset PIN: new PIN differs from current and is confirmed
 export const resetPinSchema = z
   .object({
     oldPin: z.string().regex(/^\d{4}$/, "Enter your current 4-digit PIN."),

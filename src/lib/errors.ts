@@ -1,15 +1,3 @@
-/**
- * Centralised error normalisation.
- *
- * Every rejection produced by the HTTP client is an `ApiRequestError`, so pages
- * never have to reach into `error.response.data` and never have to guess which
- * status codes exist. Nothing in this module renders UI: it only turns a
- * transport failure into a small, predictable shape that a page can present.
- *
- * The shape mirrors the MoneyTear API error envelope (`AllExceptionsFilter`),
- * which is guaranteed to carry a safe `message` and a correlation `requestId`
- * instead of a stack trace.
- */
 import { AxiosError, isAxiosError, isCancel } from "axios";
 
 export type ApiErrorCode =
@@ -26,17 +14,13 @@ export type ApiErrorCode =
   | "unknown_error";
 
 export interface ApiErrorShape {
-  /** Stable machine-readable code. Safe to branch on. */
   code: ApiErrorCode;
-  /** User-presentable summary. Never contains a stack trace. */
   message: string;
-  /** HTTP status, or `null` when the request never reached the server. */
+  // null when the request never reached the server
   status: number | null;
-  /** Per-field validation messages, when the API returned them. */
   fieldErrors: Record<string, string[]>;
-  /** Correlation id, also present in the API logs. */
   requestId: string | null;
-  /** Seconds to wait before retrying, from the `Retry-After` header. */
+  // from the Retry-After header
   retryAfterSeconds: number | null;
 }
 
@@ -64,11 +48,10 @@ const FALLBACK_MESSAGE_BY_CODE: Record<ApiErrorCode, string> = {
   unknown_error: "Something went wrong. Please try again.",
 };
 
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-/** Reads `Record<string, string[]>` out of the API envelope, ignoring junk. */
+// Keep only string-array field errors from the API body.
 const readFieldErrors = (value: unknown): Record<string, string[]> => {
   if (!isRecord(value)) return {};
   const entries = Object.entries(value).filter(
@@ -101,7 +84,6 @@ const emptyShape = (code: ApiErrorCode): Omit<ApiErrorShape, "message"> => ({
   retryAfterSeconds: null,
 });
 
-/** The single error type rejected by the HTTP client. */
 export class ApiRequestError extends Error implements ApiErrorShape {
   readonly code: ApiErrorCode;
   readonly status: number | null;
@@ -117,7 +99,7 @@ export class ApiRequestError extends Error implements ApiErrorShape {
     this.fieldErrors = shape.fieldErrors;
     this.requestId = shape.requestId;
     this.retryAfterSeconds = shape.retryAfterSeconds;
-    // Keeps `instanceof` working when the class is down-levelled to ES5.
+    // Keeps instanceof working after transpiling.
     Object.setPrototypeOf(this, ApiRequestError.prototype);
   }
 
@@ -133,7 +115,6 @@ export class ApiRequestError extends Error implements ApiErrorShape {
   }
 }
 
-/** Turns any thrown value into an `ApiErrorShape`. */
 export function normalizeError(error: unknown): ApiErrorShape {
   if (isCancel(error)) {
     return { ...emptyShape("canceled"), message: FALLBACK_MESSAGE_BY_CODE.canceled };
@@ -147,8 +128,7 @@ export function normalizeError(error: unknown): ApiErrorShape {
   const axiosError = error as AxiosError<unknown>;
   const status = axiosError.response?.status ?? null;
 
-  // No `response` means the request never completed: DNS failure, TLS failure,
-  // timeout, offline device. There is no server message to surface.
+  // No response: offline, timeout or DNS failure.
   if (status === null) {
     const code = axiosError.code === AxiosError.ERR_CANCELED ? "canceled" : "network_error";
     return { ...emptyShape(code), message: FALLBACK_MESSAGE_BY_CODE[code] };
@@ -174,29 +154,17 @@ export function isApiError(error: unknown): error is ApiRequestError {
   return error instanceof ApiRequestError;
 }
 
-/**
- * Message to display for a failed operation.
- *
- * `fallback` covers values that never went through the HTTP client (a Zod
- * failure, a thrown `TypeError`, …) so callers always have something to render.
- */
 export function getErrorMessage(error: unknown, fallback?: string): string {
   if (isApiError(error)) return error.message;
   if (error instanceof Error && error.message) return error.message;
   return fallback ?? FALLBACK_MESSAGE_BY_CODE.unknown_error;
 }
 
-/**
- * First server-side validation message for a form field, if any.
- *
- * Lets a page map API field errors onto React Hook Form with `setError`
- * instead of showing one generic toast for the whole form.
- */
+// First API validation message for a form field.
 export function getFieldError(error: unknown, field: string): string | undefined {
   return isApiError(error) ? error.fieldErrors[field]?.[0] : undefined;
 }
 
-/** True when the failure means the session can no longer be recovered. */
 export function isUnauthorized(error: unknown): boolean {
   return isApiError(error) && error.code === "unauthorized";
 }

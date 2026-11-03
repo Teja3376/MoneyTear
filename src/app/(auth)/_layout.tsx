@@ -10,7 +10,7 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="login" />
       <Stack.Screen name="otp" />
-      <Stack.Screen name="profile" />
+      <Stack.Screen name="profile-details" />
       <Stack.Screen name="set-pin" />
       <Stack.Screen name="pin" />
       <Stack.Screen name="verify-pin" />

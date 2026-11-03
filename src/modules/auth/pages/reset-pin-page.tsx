@@ -5,9 +5,9 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/components/text";
 import { router } from "expo-router";
 
 import {
@@ -17,12 +17,10 @@ import {
   text,
   textSecondary,
 } from "@/constants/theme";
-import { useAuthFonts } from "@/modules/auth/components/auth-screen-layout";
-import { resetPinSchema, type ResetPinForm } from "@/modules/auth/schemas";
-import { PinInput } from "@/components/pin-input";
+import { resetPinSchema, type ResetPinForm } from "@/modules/auth/schema";
+import { PinInput } from "@/modules/auth/ui/pin-input";
 
 export default function ResetPinPage() {
-  const [fontsLoaded] = useAuthFonts();
 
   const {
     control,
@@ -47,12 +45,9 @@ export default function ResetPinPage() {
     confirmNewPinValue.length === 4;
 
   const onSubmit = (_values: ResetPinForm) => {
-    // No request is issued here yet. `useChangePin` takes these three fields;
-    // PIN values are never logged.
+    // TODO: call useChangePin once the API flow is ready.
     router.replace("/(auth)/pin");
   };
-
-  if (!fontsLoaded) return <View style={styles.loading} />;
 
   return (
     <View style={styles.screen}>
@@ -136,7 +131,6 @@ export default function ResetPinPage() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: background },
-  loading: { flex: 1, backgroundColor: background },
   pageContent: {
     flexGrow: 1,
     justifyContent: "center",
@@ -149,14 +143,13 @@ const styles = StyleSheet.create({
     color: text,
     fontSize: 27,
     lineHeight: 36,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   subtitle: {
     color: textSecondary,
     fontSize: 14,
     lineHeight: 22,
     marginTop: 6,
-    fontFamily: "Poppins_400Regular",
   },
   form: { gap: 20 },
   submitButton: {
@@ -171,14 +164,13 @@ const styles = StyleSheet.create({
   submitText: {
     color: text,
     fontSize: 15,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   privacyNote: {
     color: textSecondary,
     textAlign: "center",
     fontSize: 11,
     lineHeight: 18,
-    fontFamily: "Poppins_400Regular",
     marginTop: -4,
   },
   pressed: { opacity: 0.78 },

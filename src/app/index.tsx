@@ -3,12 +3,7 @@ import { Redirect } from "expo-router";
 import { useSession } from "@/modules/auth/store/session-provider";
 import { usePinStatus } from "@/modules/security/hooks/usePinStatus";
 
-/**
- * Anchor route.
- *
- * Sends a signed-in user with a configured PIN to the PIN / biometric unlock screen,
- * users without a PIN to set-pin, and unauthenticated users to login.
- */
+// Send the user to login, set-pin or the PIN unlock screen.
 export default function Index() {
   const { status, isAuthenticated } = useSession();
   const { data: pinStatus, isLoading: isPinLoading } = usePinStatus({

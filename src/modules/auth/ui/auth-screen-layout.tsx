@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   GestureResponderHandlers,
   Keyboard,
@@ -10,62 +9,36 @@ import {
   ScrollView,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
+import { Text } from "@/components/text";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
 
 import { Colors, theme, handle } from "@/constants/theme";
 
 export { theme };
 export const AuthColors = Colors.dark;
 
-export function useAuthFonts() {
-  return useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-  });
-}
-
 export interface AuthScreenLayoutProps {
-  /** Content to display in the upper hero/header section above the panel */
   topContent: React.ReactNode;
-  /** Content displayed inside the bottom sheet */
   children: React.ReactNode;
-  /** Optional heading inside the bottom sheet header */
   panelHeading?: string;
-  /** Optional description inside the bottom sheet header */
   panelDescription?: string;
-  /** Whether to show the top drag handle bar (default: true) */
   showHandle?: boolean;
-  /** Custom drag zone renderer if custom markup is needed */
   renderDragZone?: () => React.ReactNode;
-  /** Optional animated translateY value for custom panel animations (e.g. login page) */
+  // pass your own animated values to drive the panel (login page does)
   panelAnimY?: Animated.Value;
-  /** Optional animated opacity value for custom panel animations */
   panelOpacity?: Animated.Value;
-  /** Gesture pan handlers attached to the top handle / drag zone */
   panHandlers?: GestureResponderHandlers;
-  /** Target height for the bottom panel (defaults to ~54% of screen height) */
+  // default ~54% of screen height
   panelHeight?: number;
-  /** Whether the keyboard is currently active (used to adapt top area height) */
+  // shrinks the top area while the keyboard is open
   keyboardVisible?: boolean;
-  /** Optional floating elements placed above panel (e.g. floating login trigger button) */
   floatingAction?: React.ReactNode;
-  /** Whether the bottom sheet content is scrollable (default: true) */
   scrollable?: boolean;
-  /** Optional container style for the scroll view content */
   contentContainerStyle?: StyleProp<ViewStyle>;
-  /** Optional style for top content wrapper */
   topAreaStyle?: StyleProp<ViewStyle>;
 }
 
@@ -87,12 +60,12 @@ export default function AuthScreenLayout({
   topAreaStyle,
 }: AuthScreenLayoutProps) {
   const { height: screenHeight } = useWindowDimensions();
-  const [fontsLoaded] = useAuthFonts();
 
   const effectivePanelHeight = panelHeight ?? screenHeight * 0.54;
 
   const [internalKeyboardVisible, setInternalKeyboardVisible] = useState(false);
 
+  // Track the keyboard so the top area can shrink while typing
   useEffect(() => {
     const showEvent =
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -116,12 +89,12 @@ export default function AuthScreenLayout({
 
   const isKeyboardActive = keyboardVisible || internalKeyboardVisible;
 
-  // Default smooth slide-up animation if parent does not provide explicit animated values
+  // Panel slide-up animation, used when the page doesn't pass its own
   const internalPanelY = useRef(new Animated.Value(effectivePanelHeight)).current;
   const internalPanelOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!panelAnimY && fontsLoaded) {
+    if (!panelAnimY) {
       Animated.parallel([
         Animated.spring(internalPanelY, {
           toValue: 0,
@@ -137,18 +110,10 @@ export default function AuthScreenLayout({
         }),
       ]).start();
     }
-  }, [fontsLoaded, internalPanelY, internalPanelOpacity, panelAnimY]);
+  }, [internalPanelY, internalPanelOpacity, panelAnimY]);
 
   const activePanelY = panelAnimY ?? internalPanelY;
   const activePanelOpacity = panelOpacity ?? internalPanelOpacity;
-
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={theme.primary} size="large" />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -157,7 +122,6 @@ export default function AuthScreenLayout({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View style={styles.screen}>
-          {/* Top content area */}
           <View
             style={[
               styles.topArea,
@@ -168,10 +132,8 @@ export default function AuthScreenLayout({
             {topContent}
           </View>
 
-          {/* Optional floating action element */}
           {floatingAction}
 
-          {/* Bottom sheet panel */}
           <Animated.View
             style={[
               styles.formPanel,
@@ -229,12 +191,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.background,
   },
-  loading: {
-    flex: 1,
-    backgroundColor: theme.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   screen: {
     flex: 1,
     backgroundColor: theme.background,
@@ -281,12 +237,11 @@ const styles = StyleSheet.create({
   heading: {
     color: theme.text,
     fontSize: 25,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   description: {
     color: theme.textSecondary,
     fontSize: 13,
-    fontFamily: "Poppins_400Regular",
     marginTop: 6,
     marginBottom: 14,
   },

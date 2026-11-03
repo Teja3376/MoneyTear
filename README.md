@@ -1,56 +1,60 @@
-# Welcome to your Expo app 👋
+# MoneyTear
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo / React Native app. Run it with `npm install` then `npx expo start`.
+Checks: `npm run verify` (typecheck + lint).
 
-## Get started
+## Project structure
 
-1. Install dependencies
+Rule: **everything about one business area lives in one module folder.** Code used by
+two or more modules goes in a shared folder. Route files stay one line.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+src/
+├── app/                      # Expo Router routes ONLY: each file renders one module page
+│   ├── _layout.tsx           # providers + auth guard
+│   ├── index.tsx             # entry: redirects to login / set-pin / pin
+│   ├── (auth)/login.tsx      # → <LoginPage />
+│   └── (tabs)/               # index → <HomePage />, category, history, profile
+│
+├── modules/                  # one folder per business area
+│   ├── auth/
+│   │   ├── pages/            # full screens: own state, call hooks, lay out ui
+│   │   ├── ui/               # parts only auth uses (PinInput, DatePickerSheet, layout)
+│   │   ├── hooks/            # one React Query hook per endpoint + keys.ts
+│   │   ├── schema/           # zod form schemas
+│   │   ├── store/            # session provider
+│   │   └── types/            # API data types
+│   ├── security/             # PIN endpoints: hooks/, types/
+│   ├── users/                # profile endpoints: hooks/, types/
+│   ├── home/pages/           # Home tab
+│   ├── category/pages/       # Category tab
+│   ├── history/pages/        # History tab
+│   └── profile/pages/        # Profile tab
+│
+├── components/               # shared app widgets (header, bottom nav, logo, icons)
+├── lib/                      # infrastructure: http-client, errors, session, storage, query-client
+├── providers/                # QueryProvider
+└── constants/theme.ts        # colours, fonts
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+| Folder | Holds | Must not |
+|---|---|---|
+| `app/**` | the route; renders one module page | hold state, fetch data or layout |
+| `modules/X/pages` | a whole screen | be imported by another module |
+| `modules/X/ui` | presentational parts, data via props | call APIs |
+| `modules/X/hooks` | `useQuery` / `useMutation`, keys in `keys.ts` | render anything |
+| `modules/X/schema`, `types` | zod schemas, API types | have side effects |
+| `components/`, `lib/` | code used by 2+ modules | hold one module's screens |
 
-### Other setup steps
+## Adding a feature (e.g. `transactions`)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+1. `src/modules/transactions/types/index.ts`: API data types.
+2. `src/modules/transactions/hooks/keys.ts` + one hook per endpoint (`useGetTransactions.ts`), using `api` from `@/lib/http-client`.
+3. `src/modules/transactions/ui/`: parts only this module shows.
+4. `src/modules/transactions/pages/transactions-page.tsx`: the screen.
+5. `src/app/(tabs)/transactions.tsx`: one line, `return <TransactionsPage />`.
+6. If a second module needs a `ui` part, move it to `src/components/`.
 
-## Learn more
+Text: import `Text` / `TextInput` from `@/components/text` and set only `fontWeight` (Poppins is applied there).
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Naming: files kebab-case (`login-page.tsx`, `pin-input.tsx`), hooks `useGetX` / `useVerbX`.

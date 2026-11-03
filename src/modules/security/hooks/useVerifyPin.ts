@@ -1,4 +1,4 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation } from "@tanstack/react-query";
 import type { PinVerified, VerifyPinRequest } from "../types";
 

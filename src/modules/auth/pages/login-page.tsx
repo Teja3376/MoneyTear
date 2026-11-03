@@ -1,35 +1,35 @@
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import {
-    Animated,
-    Keyboard,
-    PanResponder,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    LayoutAnimation,
-    TextInput,
-    View,
-    useWindowDimensions,
+  Animated,
+  Keyboard,
+  PanResponder,
+  Platform,
+  Pressable,
+  StyleSheet,
+  LayoutAnimation,
+  View,
+  useWindowDimensions,
 } from "react-native";
+import { Text, TextInput } from "@/components/text";
 
 import AuthScreenLayout, {
-    useAuthFonts,
     theme,
-} from "@/modules/auth/components/auth-screen-layout";
-import { mobileSchema, type MobileForm } from "@/modules/auth/schemas";
+} from "@/modules/auth/ui/auth-screen-layout";
+import { mobileSchema, type MobileForm } from "@/modules/auth/schema";
 import { primaryDisabled } from "@/constants/theme";
 import { useSendOtp } from "@/modules/auth/hooks/useSendOtp";
 import { getErrorMessage } from "@/lib/errors";
+// Animated version of the shared Text, so the taglines get Poppins too
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export default function LoginPage() {
     const { height: screenHeight } = useWindowDimensions();
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+    // Track the keyboard so the layout can compact while typing
     useEffect(() => {
         const showEvent =
             Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -49,8 +49,7 @@ export default function LoginPage() {
         };
     }, []);
 
-    const [fontsLoaded] = useAuthFonts();
-
+    // Hero tagline fade-in values
     const tagline1 = useRef(new Animated.Value(0)).current;
     const tagline2 = useRef(new Animated.Value(0)).current;
     const tagline3 = useRef(new Animated.Value(0)).current;
@@ -58,9 +57,11 @@ export default function LoginPage() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const loginBtnAnim = useRef(new Animated.Value(0)).current;
 
+    // Panel starts off-screen at the bottom
     const panelY = useRef(new Animated.Value(screenHeight)).current;
     const panelOpacity = useRef(new Animated.Value(0)).current;
 
+    // Move the brand down to center while the panel is closed
     const brandCenterOffset = (screenHeight * 0.58) / 2;
     const brandTranslateY = useMemo(
         () =>
@@ -72,6 +73,7 @@ export default function LoginPage() {
         [panelY, screenHeight, brandCenterOffset]
     );
 
+    // Latest values for the gesture handler, which is created once
     const screenHeightRef = useRef(screenHeight);
     useEffect(() => {
         screenHeightRef.current = screenHeight;
@@ -80,6 +82,7 @@ export default function LoginPage() {
     const closePanelRef = useRef<() => void>(() => { });
     const openPanelRef = useRef<() => void>(() => { });
 
+    // Slide the panel down and show the login button
     const closePanel = () => {
         Keyboard.dismiss();
         Animated.parallel([
@@ -103,6 +106,7 @@ export default function LoginPage() {
         });
     };
 
+    // Slide the panel up and hide the login button
     const openPanel = () => {
         setIsPanelOpen(true);
         Animated.parallel([
@@ -129,6 +133,7 @@ export default function LoginPage() {
     closePanelRef.current = closePanel;
     openPanelRef.current = openPanel;
 
+    // Drag the panel: pull down to close, resist dragging up
     const panResponder = useRef(
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
@@ -146,6 +151,7 @@ export default function LoginPage() {
                     panelY.setValue(gestureState.dy * 0.15);
                 }
             },
+            // Close on a long or fast swipe down, otherwise snap back open
             onPanResponderRelease: (_, gestureState) => {
                 if (gestureState.dy > 80 || gestureState.vy > 0.5) {
                     closePanelRef.current();
@@ -165,9 +171,8 @@ export default function LoginPage() {
         defaultValues: { mobile: "" },
     });
 
+    // Intro: after the splash, fade in taglines one by one, then slide the panel up
     useEffect(() => {
-        if (!fontsLoaded) return;
-
         let openTimer: ReturnType<typeof setTimeout> | null = null;
         const timer = setTimeout(() => {
             Animated.stagger(400, [tagline1, tagline2, tagline3].map((value) =>
@@ -206,7 +211,7 @@ export default function LoginPage() {
             clearTimeout(timer);
             if (openTimer) clearTimeout(openTimer);
         };
-    }, [fontsLoaded, tagline1, tagline2, tagline3, panelY, panelOpacity]);
+    }, [tagline1, tagline2, tagline3, panelY, panelOpacity]);
 
     const sendOtpMutation = useSendOtp();
     const [apiError, setApiError] = useState<string | null>(null);
@@ -224,7 +229,6 @@ export default function LoginPage() {
         }
 
     };
-
 
     return (
         <AuthScreenLayout
@@ -277,7 +281,7 @@ export default function LoginPage() {
                         },
                     ]}
                 >
-                    <Animated.Text
+                    <AnimatedText
                         style={[
                             styles.heroTagline,
                             keyboardVisible && styles.heroTaglineCompact,
@@ -285,9 +289,9 @@ export default function LoginPage() {
                         ]}
                     >
                         Every payment.
-                    </Animated.Text>
+                    </AnimatedText>
 
-                    <Animated.Text
+                    <AnimatedText
                         style={[
                             styles.heroTagline,
                             keyboardVisible && styles.heroTaglineCompact,
@@ -295,9 +299,9 @@ export default function LoginPage() {
                         ]}
                     >
                         Every rupee.
-                    </Animated.Text>
+                    </AnimatedText>
 
-                    <Animated.Text
+                    <AnimatedText
                         style={[
                             styles.heroTagline,
                             styles.heroTaglineAccent,
@@ -306,7 +310,7 @@ export default function LoginPage() {
                         ]}
                     >
                         Always in control.
-                    </Animated.Text>
+                    </AnimatedText>
                 </Animated.View>
             }
         >
@@ -369,7 +373,6 @@ export default function LoginPage() {
                 </Text>
             </Pressable>
 
-
             <Text style={styles.terms}>
                 By continuing, you agree to our{" "}
                 <Text style={styles.termsHighlight}>
@@ -393,12 +396,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: theme.background,
     },
-    loading: {
-        flex: 1,
-        backgroundColor: theme.background,
-        alignItems: "center",
-        justifyContent: "center",
-    },
     screen: {
         flex: 1,
         backgroundColor: theme.background,
@@ -413,7 +410,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         gap: 12,
     },
-    // Compact container when keyboard opens
+    // keyboard open
     brandSectionCompact: {
         flex: 0,
         minHeight: 0,
@@ -424,11 +421,11 @@ const styles = StyleSheet.create({
         color: theme.text,
         fontSize: 25,
         lineHeight: 36,
-        fontFamily: "Poppins_600SemiBold",
+        fontWeight: "600",
         textAlign: "center",
         includeFontPadding: false,
     },
-    // Smaller font size & line height when keyboard opens
+    // keyboard open
     heroTaglineCompact: {
         fontSize: 15,
         lineHeight: 20,
@@ -468,12 +465,11 @@ const styles = StyleSheet.create({
     heading: {
         color: theme.text,
         fontSize: 25,
-        fontFamily: "Poppins_600SemiBold",
+        fontWeight: "600",
     },
     description: {
         color: theme.textSecondary,
         fontSize: 13,
-        fontFamily: "Poppins_400Regular",
         marginTop: 6,
         marginBottom: 14,
     },
@@ -501,7 +497,7 @@ const styles = StyleSheet.create({
     loginTriggerText: {
         color: theme.text,
         fontSize: 16,
-        fontFamily: "Poppins_600SemiBold",
+        fontWeight: "600",
     },
     loginTriggerArrow: {
         color: theme.text,
@@ -511,7 +507,7 @@ const styles = StyleSheet.create({
     label: {
         color: theme.text,
         fontSize: 13,
-        fontFamily: "Poppins_500Medium",
+        fontWeight: "500",
         marginBottom: 10,
     },
     inputContainer: {
@@ -527,7 +523,7 @@ const styles = StyleSheet.create({
     countryCode: {
         color: theme.text,
         fontSize: 14,
-        fontFamily: "Poppins_500Medium",
+        fontWeight: "500",
     },
     divider: {
         width: 1,
@@ -539,7 +535,6 @@ const styles = StyleSheet.create({
         flex: 1,
         color: theme.text,
         fontSize: 14,
-        fontFamily: "Poppins_400Regular",
         paddingVertical: 15,
     },
     inputError: {
@@ -548,7 +543,6 @@ const styles = StyleSheet.create({
     errorText: {
         color: theme.error,
         fontSize: 11,
-        fontFamily: "Poppins_400Regular",
         marginTop: 7,
     },
     button: {
@@ -569,7 +563,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: theme.text,
         fontSize: 15,
-        fontFamily: "Poppins_600SemiBold",
+        fontWeight: "600",
     },
     arrow: {
         color: theme.text,
@@ -579,14 +573,13 @@ const styles = StyleSheet.create({
     terms: {
         color: theme.textSecondary,
         fontSize: 10,
-        fontFamily: "Poppins_400Regular",
         textAlign: "center",
         lineHeight: 18,
         marginTop: 20,
     },
     termsHighlight: {
         color: theme.text,
-        fontFamily: "Poppins_500Medium",
+        fontWeight: "500",
     },
     footer: {
         marginTop: 24,
@@ -604,6 +597,6 @@ const styles = StyleSheet.create({
         color: theme.textSecondary,
         fontSize: 9,
         letterSpacing: 1.5,
-        fontFamily: "Poppins_500Medium",
+        fontWeight: "500",
     },
 });

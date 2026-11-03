@@ -3,11 +3,12 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
-  Text,
-  TextInput,
   View,
   ViewStyle,
 } from "react-native";
+import { Text } from "@/components/text";
+import { TextInput, type TextInputInstance } from "react-native";
+
 
 import {
   background,
@@ -24,15 +25,13 @@ export interface PinInputProps {
   value: string;
   onChange: (pin: string) => void;
   error?: string;
-  maxLength?: number; // Defaults to 4
+  maxLength?: number;
   secureTextEntry?: boolean;
   style?: StyleProp<ViewStyle>;
   autoFocus?: boolean;
 }
 
-/**
- * Reusable 4-digit PIN input with styled digit boxes and Android IME-safe hidden input.
- */
+// 4 PIN boxes over a hidden input (keeps Android keyboards from dropping keys).
 export function PinInput({
   label,
   value,
@@ -43,10 +42,11 @@ export function PinInput({
   style,
   autoFocus = false,
 }: PinInputProps) {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showPin, setShowPin] = useState(!secureTextEntry);
 
+  // Keep digits only, up to maxLength
   const handleChange = (text: string) => {
     const cleaned = text.replace(/\D/g, "").slice(0, maxLength);
     onChange(cleaned);
@@ -137,12 +137,12 @@ const styles = StyleSheet.create({
   label: {
     color: text,
     fontSize: 13,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   toggleText: {
     color: textSecondary,
     fontSize: 12,
-    fontFamily: "Poppins_500Medium",
+    fontWeight: "500",
   },
   boxesRow: {
     flexDirection: "row",
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   digitText: {
     color: text,
     fontSize: 22,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "600",
   },
   maskDot: {
     width: 12,
@@ -194,7 +194,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: errorColor,
     fontSize: 12,
-    fontFamily: "Poppins_400Regular",
     marginTop: -2,
   },
 });

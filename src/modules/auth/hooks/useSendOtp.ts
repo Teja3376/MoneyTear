@@ -1,4 +1,4 @@
-import api from "@/lib/httpClient";
+import { api } from "@/lib/http-client";
 import { useMutation } from "@tanstack/react-query";
 
 export interface SendOtpPayload {
@@ -9,7 +9,6 @@ export interface SendOtpResponse {
   success: boolean;
   message: string;
 }
-
 
 export const useSendOtp = () => {
   return useMutation({
